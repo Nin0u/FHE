@@ -19,6 +19,8 @@ class Polynomial{
         Polynomial(const Polynomial &p);
         void generatePolynomial(int min_deg, int max_deg, int max_coeffs);
 
+        Polynomial &operator=(Polynomial p);
+
         // Getter
         int getDegree();
 

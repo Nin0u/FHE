@@ -26,6 +26,15 @@ Polynomial::Polynomial(const Polynomial &p) : coeffs{p.deg + 1}, deg{p.deg}
         coeffs[i] = p.coeffs[i];
 }
 
+Polynomial &Polynomial::operator=(Polynomial p) {
+    coeffs.reserve(p.deg + 1);
+    for(int i = 0; i <= p.deg; i++)
+        coeffs[i] = p.coeffs[i];
+    this->deg = p.deg;
+    return *this;
+}
+
+
 // Génère aléatoirement un polynome
 void Polynomial::generatePolynomial(int min_deg, int max_deg, int max_coeffs){
     srand(time(NULL));
@@ -51,12 +60,11 @@ int &Polynomial::operator[](int i){
 Polynomial operator+(Polynomial &p1, Polynomial &p2){
     Polynomial p3{p2.deg >= p1.deg ? p2.deg : p1.deg};
     if (p2.deg >= p1.deg) {
-        p3 = p2;
 
         int last_not_null = 0;
         for(int i = 0; i <= p1.deg; i++)
         {
-            p3[i] += p1[i];
+            p3[i] = p1[i] + p2[i];
             if(p3[i] != 0) last_not_null = i;
         }
         for(int i = p1.deg + 1; i <= p2.deg; i++) {
@@ -70,7 +78,7 @@ Polynomial operator+(Polynomial &p1, Polynomial &p2){
         int last_not_null = 0;
         for(int i = 0; i <= p2.deg; i++)
         {
-            p3[i] += p2[i];
+            p3[i] = p1[i] + p2[i];
             if(p3[i] != 0) last_not_null = i;
         }
         for(int i = p2.deg + 1; i <= p1.deg; i++) {
@@ -87,8 +95,8 @@ Polynomial operator+(Polynomial &p1, Polynomial &p2){
 Polynomial operator-(Polynomial &p1, Polynomial &p2){
     Polynomial p3{p2};
     
-    for(int i = 0; i < p2.deg; i++)
-        p3[i] = -p3[i];
+    for(int i = 0; i <= p2.deg; i++)
+        p3[i] *= -1;
 
     return p1 + p3;
 }
@@ -141,8 +149,9 @@ Polynomial euclidianDiv(Polynomial &p1, Polynomial &p2)
         cout << q ;
         Polynomial s{r.deg - d};
         s[r.deg - d] = r[r.deg] / c;
+        cout << s;
         q = q + s;
-        Polynomial res = (p2 * s);
+        s = (p2 * s);
         r = r - s;
         i++;
     }
