@@ -1,9 +1,9 @@
 CC=g++ -Wall
 INCL=-Iinclude
-CCO=$(CC) $(INCL) -o $@ $< 
+CCO=$(CC) -c $(INCL) -o $@ $< 
 
 OUT_DIR=@mkdir out -p
-OUT=out/Polynomial.o
+OUT=out/Polynomial.o out/Main.o
 
 TARGET=main
 
@@ -18,6 +18,10 @@ clean:
 	rm -rf out/
 
 # =============== OUTPUTS =============== #
+out/Main.o: src/Main.cpp include/Polynomial.hpp
+	$(OUT_DIR)
+	$(CCO)
+
 out/Polynomial.o: src/Polynomial.cpp include/Polynomial.hpp
 	$(OUT_DIR)
 	$(CCO)
