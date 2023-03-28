@@ -145,8 +145,6 @@ Polynomial euclidianDiv(Polynomial &p1, Polynomial &p2)
 
     while(r.deg >= d && i <= 5)
     {
-        cout << r ;
-        cout << q ;
         Polynomial s{r.deg - d};
         s[r.deg - d] = r[r.deg] / c;
         cout << s;
@@ -169,8 +167,27 @@ Polynomial extendedGCD(const Polynomial &p1, const Polynomial &p2)
     int i = 1;
     while(r1.coeffs[0] != 0 && r1.deg != 0)
     {
+        Polynomial q = euclidianDiv(r0, r1);
+        Polynomial qri = q * r1;
+        Polynomial qsi = q * s1;
+        Polynomial qti = q * t1;
+        
+        Polynomial r2 = r0 - qri;
+        Polynomial s2 = s0 - qsi;
+        Polynomial t2 = t0 - qti;
+
+        r0 = r1;
+        r1 = r2;
+        s0 = s1;
+        s1 = s2;
+        t0 = t1;
+        t1 = t2;
         i++;
     } 
+
+    cout << r0;
+    cout << s0;
+    cout << t0;
 
     return r1;
 }
