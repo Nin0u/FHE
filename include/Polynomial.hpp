@@ -4,28 +4,31 @@
 #include <vector>
 #include <iostream>
 #include <time.h>
+#include "Fraction.hpp"
 
 
 class Polynomial{
     private:
-        std::vector<int> coeffs;
+        std::vector<Fraction> coeffs;
         int deg;
 
     public:
         // Constructeurs
         Polynomial();
         Polynomial(int deg);
-        Polynomial(std::vector<int> v, int deg);
+        Polynomial(std::vector<Fraction> v, int deg);
         Polynomial(const Polynomial &p);
         void generatePolynomial(int min_deg, int max_deg, int max_coeffs);
 
         Polynomial &operator=(Polynomial p);
 
+        Polynomial mult(int d);
+
         // Getter
         int getDegree();
 
         // Surchage d'opérateurs
-        int &operator[](int i);
+        Fraction &operator[](int i);
         friend Polynomial operator+(Polynomial & p1, Polynomial &p2);
         friend Polynomial operator-(Polynomial & p1, Polynomial &p2);
         friend Polynomial operator*(Polynomial & p1, Polynomial &p2);
@@ -35,9 +38,11 @@ class Polynomial{
 
         friend Polynomial euclidianDiv(Polynomial &p1, Polynomial &p2);
 
-        friend Polynomial extendedGCD(const Polynomial &p1, const Polynomial &p2);
+        friend Polynomial extendedGCD( Polynomial &p1,  Polynomial &p2);
         // Bezout
 
 };
+
+int puiss(int x,int n);
 
 #endif

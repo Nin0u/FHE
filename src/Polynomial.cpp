@@ -6,7 +6,7 @@ using namespace std;
 // Constructeur
 Polynomial::Polynomial() : coeffs{}, deg{0} {}
 
-Polynomial::Polynomial(int deg) : coeffs{deg + 1}, deg{deg} 
+Polynomial::Polynomial(int deg) : coeffs{}, deg{deg} 
 {
     coeffs.reserve(deg + 1);
     for(int i = 0; i <= deg; i++) {
@@ -14,7 +14,7 @@ Polynomial::Polynomial(int deg) : coeffs{deg + 1}, deg{deg}
     }
 }
 
-Polynomial::Polynomial(vector<int> v, int deg) : coeffs{v}, deg{deg}
+Polynomial::Polynomial(vector<Fraction> v, int deg) : coeffs{v}, deg{deg}
 {
 }
 
@@ -34,7 +34,6 @@ Polynomial &Polynomial::operator=(Polynomial p) {
     return *this;
 }
 
-
 // Génère aléatoirement un polynome
 void Polynomial::generatePolynomial(int min_deg, int max_deg, int max_coeffs){
     srand(time(NULL));
@@ -52,7 +51,7 @@ void Polynomial::generatePolynomial(int min_deg, int max_deg, int max_coeffs){
 int Polynomial::getDegree() { return deg; }
 
 // [] : retourne le coefficient de X^i
-int &Polynomial::operator[](int i){
+Fraction &Polynomial::operator[](int i){
     return coeffs[i];
 }
 
@@ -91,6 +90,7 @@ Polynomial operator+(Polynomial &p1, Polynomial &p2){
     return p3;
 }
 
+
 // Soustraction Polynome
 Polynomial operator-(Polynomial &p1, Polynomial &p2){
     Polynomial p3{p2};
@@ -106,10 +106,10 @@ Polynomial operator-(Polynomial &p1, Polynomial &p2){
 Polynomial operator*(Polynomial &p1, Polynomial &p2){
     Polynomial p3{p1.deg + p2.deg};
     for(int n = 0; n <= p1.deg + p2.deg; n++) {
-        int sum = 0;
+        Fraction sum = 0;
         for(int k = 0; k <= n; k++) {
             if(k <= p1.deg && (n - k) <= p2.deg && (n - k) >= 0)
-                sum += p1[k] * p2[n - k];
+                sum += (p1[k] * p2[n - k]);
         }  
         p3.coeffs[n] = sum;
     }
@@ -139,7 +139,7 @@ Polynomial euclidianDiv(Polynomial &p1, Polynomial &p2)
     Polynomial q{0};
     Polynomial r{p1};
     int d = p2.deg;
-    int c = p2.coeffs[d];
+    Fraction c = p2.coeffs[d];
 
     int i = 0;
 
@@ -147,25 +147,48 @@ Polynomial euclidianDiv(Polynomial &p1, Polynomial &p2)
     {
         Polynomial s{r.deg - d};
         s[r.deg - d] = r[r.deg] / c;
-        cout << s;
+        //cout << s;
         q = q + s;
         s = (p2 * s);
         r = r - s;
         i++;
     }
 
-    cout << q ;
-    cout << r;
+    //cout << q ;
+    //cout << r;
+
+    Polynomial pp = p2 * q;
+    pp = pp + r;
+    cout << pp;
 
     return q;
 }
 
+Polynomial Polynomial::mult(int d)
+{
+    Polynomial p{deg};
+
+    for(int i = 0; i <= deg; i++) {
+        p.coeffs[i] = d * coeffs[i];
+    }
+
+    return p;
+}
+
+int puiss(int x,int n) {
+    cout << n<< endl;
+    if(n <= 1) return x ;
+    int x2 = (x * x);
+    if(n % 2 == 0) return puiss(x2, n << 1);
+    else return (x * puiss(x2, (n-1) << 1));
+}
+
 // Bezout
-Polynomial extendedGCD(const Polynomial &p1, const Polynomial &p2)
+Polynomial extendedGCD(Polynomial &p1, Polynomial &p2)
 {
     Polynomial r0{p1}, r1{p2}, s0{{1}, 0}, s1{{0}, 0}, t0{{0}, 0}, t1{{1}, 0};
     int i = 1;
-    while(r1.coeffs[0] != 0 && r1.deg != 0)
+    while(r1.coeffs[0] != 0 || r1.deg != 0)
     {
         Polynomial q = euclidianDiv(r0, r1);
         Polynomial qri = q * r1;
@@ -182,6 +205,9 @@ Polynomial extendedGCD(const Polynomial &p1, const Polynomial &p2)
         s1 = s2;
         t0 = t1;
         t1 = t2;
+        cout << "r0 = " << r0 << " r1 = " << r1;
+        cout << "t0 = " << t0 << " t1 = " << t1;
+        cout << "s0 = " << s0 << " s1 = " << s1;
         i++;
     } 
 
@@ -189,5 +215,9 @@ Polynomial extendedGCD(const Polynomial &p1, const Polynomial &p2)
     cout << s0;
     cout << t0;
 
+    Polynomial res1 = p1 * s0;
+    Polynomial res2 = p2 * t0;
+
+    cout << res1 + res2 << endl;
     return r1;
 }

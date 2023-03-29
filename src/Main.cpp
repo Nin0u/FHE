@@ -6,7 +6,7 @@ using namespace std;
 int main(void) 
 {
     Polynomial p1{};
-    p1.generatePolynomial(3,3,10);
+    p1.generatePolynomial(5,5,10);
     cout << "P1 = " << p1 << endl;
 
 
@@ -17,11 +17,12 @@ int main(void)
     cout << "P1 + P2 = " << p1 + p2 << endl;
     cout << "P1 * P2 = " << p1 * p2 << endl;
 
-    Polynomial p3{1};
+    Polynomial p3{4};
     p3[0] = 1;
-    p3[1] = 1;
+    p3[4] = 1;
     cout << p3 << endl;
     euclidianDiv(p1, p3);
+    extendedGCD(p1, p3);
 
 
     return 0;
