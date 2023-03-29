@@ -14,12 +14,18 @@ Fraction::Fraction(long int n, long int d) : num{n}, den{d}
         cout << n << " " << d << endl;
         throw InvalidDenom{"Erreur"};
     }
-    int pgcd_ = Fraction::pgcd(n, d);
+    long int pgcd_ = Fraction::pgcd(n, d);
     if(num == 0) {
         num = 0;
         den = 1;
         return;
     }
+    if(den < 0)
+    {
+        den *= -1;
+        num *= -1;
+    }
+
     num /= pgcd_;
     den /= pgcd_;
 }
@@ -44,7 +50,7 @@ bool operator!=(Fraction &f1, long int f2) {
     return !(f1 == f2);
 }
 
-int Fraction::pgcd(long int a, long int b)
+long int Fraction::pgcd(long int a, long int b)
 {
     // if(a < 0) return pgcd(-a, b);   
     // if(b < 0) return pgcd(a, -b); 
@@ -81,21 +87,27 @@ ostream &operator<<(ostream &out, const Fraction &f)
 }
 
 Fraction &Fraction::operator+=(Fraction & f) {
-    int pgcd_den = Fraction::pgcd(den, f.den);
-    int new_den = den * f.den / pgcd_den;
-    int new_num = (num * f.den + f.num * den) / pgcd_den;
+    long int pgcd_den = Fraction::pgcd(den, f.den);
+    long int new_den = den * f.den / pgcd_den;
+    long int new_num = (num * f.den + f.num * den) / pgcd_den;
     num = new_num;
     den = new_den;
+    long int gcd = Fraction::pgcd(num, den);
+    num /= gcd;
+    den /= gcd;
 
     return *this;
 }
 
 Fraction &Fraction::operator-=(Fraction & f) {
-    int pgcd_den = Fraction::pgcd(den, f.den);
-    int new_den = den * f.den / pgcd_den;
-    int new_num = (num * f.den - f.num * den) / pgcd_den;
+    long int pgcd_den = Fraction::pgcd(den, f.den);
+    long int new_den = den * f.den / pgcd_den;
+    long int new_num = (num * f.den - f.num * den) / pgcd_den;
     num = new_num;
     den = new_den;
+    long int gcd = Fraction::pgcd(num, den);
+    num /= gcd;
+    den /= gcd;
     return *this;
 }
 
@@ -106,11 +118,14 @@ Fraction operator*(const Fraction &f1, const Fraction &f2)
 }
 
 Fraction &Fraction::operator+=(Fraction f) {
-    int pgcd_den = Fraction::pgcd(den, f.den);
-    int new_den = den * f.den / pgcd_den;
-    int new_num = (num * f.den + f.num * den) / pgcd_den;
+    long int pgcd_den = Fraction::pgcd(den, f.den);
+    long int new_den = den * f.den / pgcd_den;
+    long int new_num = (num * f.den + f.num * den) / pgcd_den;
     num = new_num;
     den = new_den;
+    long int gcd = Fraction::pgcd(num, den);
+    num /= gcd;
+    den /= gcd;
 
     return *this;
 }
@@ -123,18 +138,18 @@ Fraction::operator int() {
 
 Fraction operator+(const Fraction &f1, const Fraction &f2)
 {
-    int pgcd_den = Fraction::pgcd(f1.den, f2.den);
-    int new_den = f1.den * f2.den / pgcd_den;
-    int new_num = (f1.num * f2.den + f2.num * f1.den) / pgcd_den;
+    long int pgcd_den = Fraction::pgcd(f1.den, f2.den);
+    long int new_den = f1.den * f2.den / pgcd_den;
+    long int new_num = (f1.num * f2.den + f2.num * f1.den) / pgcd_den;
 
     return Fraction{new_num, new_den};
 }
 
 Fraction operator-(const Fraction &f1, const Fraction &f2)
 {
-    int pgcd_den = Fraction::pgcd(f1.den, f2.den);
-    int new_den = f1.den * f2.den / pgcd_den;
-    int new_num = (f1.num * f2.den - f2.num * f1.den) / pgcd_den;
+    long int pgcd_den = Fraction::pgcd(f1.den, f2.den);
+    long int new_den = f1.den * f2.den / pgcd_den;
+    long int new_num = (f1.num * f2.den - f2.num * f1.den) / pgcd_den;
 
     return Fraction{new_num, new_den};
 }
@@ -149,7 +164,7 @@ Fraction Fraction::operator++(int i)
 Fraction &Fraction::operator++()
 {
     num += den;
-    int pgcd_ = Fraction::pgcd(num, den);
+    long int pgcd_ = Fraction::pgcd(num, den);
     num /= pgcd_;
     den /= pgcd_;
 
@@ -158,7 +173,7 @@ Fraction &Fraction::operator++()
 
 Fraction &Fraction::operator*=(long int a) {
     num *= a;
-    int d = pgcd(num, den);
+    long int d = pgcd(num, den);
     num /= d;
     den /= d;
     return *this;

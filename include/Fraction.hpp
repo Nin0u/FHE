@@ -10,7 +10,7 @@ class Fraction
         long int num;
         long int den;
 
-        static int pgcd(long int a, long int b);
+        static long int pgcd(long int a, long int b);
 
     public:
         Fraction(long int num, long int den = 1);
