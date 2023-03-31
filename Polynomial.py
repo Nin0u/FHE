@@ -1,4 +1,3 @@
-from fractions import Fraction
 import random as rd
 
 class Polynomial :
@@ -7,10 +6,10 @@ class Polynomial :
         self.deg = n
         self.coeff = []
         for i in range(n + 1) :
-            self.coeff.append(Fraction(0))
+            self.coeff.append(0)
         if fill : 
             for i in range(n + 1) :
-                self.coeff[i] = Fraction(rd.randint(-max_coeff, max_coeff))
+                self.coeff[i] = rd.randint(-max_coeff, max_coeff)
         if fixed_value != None : 
             n = len(fixed_value) -1
             for i in range(len(fixed_value)) :
@@ -62,7 +61,7 @@ class Polynomial :
 
         else :
             for i in range(p.deg - result.deg) :
-                result.coeff.append(Fraction(0))
+                result.coeff.append(0)
             for i in range(len(p.coeff)) :
                 result.coeff[i] += p.coeff[i]
             result.deg = p.deg
@@ -103,22 +102,33 @@ class Polynomial :
 
         return (q, r)
 
-    def bezout(self, p) :
-        if self.isZero() : return p, Polynomial(0, fixed_value = [0]), Polynomial(0, fixed_value = [1])
-                
-        q,r = p.euclidianDiv(self)
-        gcd,x1,y1 = r.bezout(self)
-        
-        # Update x and y using results of recursive
-        # call
-        x = y1.sub(q.mul(x1))
-        y = x1
-        
-        return gcd,x,y
+    def bezout(self, p) : 
+        r1 = self.copy()
+        r2 = p.copy()
+        u1 = Polynomial(0, fixed_value = [1])
+        u2 = Polynomial(0, fixed_value = [0])
+        v1 = Polynomial(0, fixed_value = [0])
+        v2 = Polynomial(0, fixed_value = [1])
+
+        while(not r2.isZero()) :
+            q = r1.euclidianDiv(r2)[0]
+            rs = r1 
+            us = u1
+            vs = v1 
+
+            r1 = r2
+            u1 = u2
+            v1 = v2
+
+            r2 = rs.sub(q.mul(r2))
+            u2 = us.sub(q.mul(u2))
+            v2 = vs.sub(q.mul(v2))
+
+        return (r1,u1,v1)
 
 # Tests
 if __name__ == "__main__" :
-    p1 = Polynomial(4, fixed_value = [1,1,1,1])
+    p1 = Polynomial(4, fixed_value = [1,1,1,1,1])
     p2 = Polynomial(2, fixed_value = [1,1,1])
     print("P1 =", p1)
     print("P2 =", p2)
