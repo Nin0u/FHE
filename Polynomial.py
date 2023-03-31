@@ -86,8 +86,12 @@ class Polynomial :
             result = result.add(p4)
         return result
     
+    def div(self, elt) :
+        for i in range(len(self.coeff)) :
+            self.coeff[i] //= elt
+    
     def contenu(self) :
-        pgcd = self.coeff[self.deg]
+        pgcd = 0
         for i in range(len(self.coeff)) :
             pgcd = mat.gcd(pgcd, self.coeff[i])
         return pgcd
@@ -146,8 +150,8 @@ class Polynomial :
             D = Polynomial(0, fixed_value=[d])
             rs = r1.mul(D)
             us = u1.mul(D)
-            vs = v1.mul(D)
-
+            vs = v1.mul(D) 
+            
             r1 = r2
             u1 = u2
             v1 = v2
@@ -155,6 +159,12 @@ class Polynomial :
             r2 = rs.sub(q.mul(r2))
             u2 = us.sub(q.mul(u2))
             v2 = vs.sub(q.mul(v2))
+            
+            pgcd = mat.gcd(r2.contenu(), mat.gcd(u2.contenu(), v2.contenu()))
+            if(pgcd != 0) :
+                r2.div(pgcd)
+                u2.div(pgcd)
+                v2.div(pgcd)
 
         return (r1,u1,v1)
     
@@ -170,7 +180,6 @@ class Polynomial :
         e = m - n + 1
         
         while((not r.isZero()) and r.deg >= n) : 
-            print(r)
             s = Polynomial(r.deg - n)
             s.coeff[r.deg - n] = r.coeff[r.deg]
             q = q.mul(D).add(s)
@@ -204,5 +213,5 @@ if __name__ == "__main__" :
     print(p1.mul(D))
     
     r, u, v = p1.bezoutInt(p2)
-    print(r, u, v)
-    print((p1.mul(u)).add(p2.mul(v)))
+    print("R =",r, "U =",u, "V =",v)
+    print("P1 * U + P2 * V =",(p1.mul(u)).add(p2.mul(v)))
