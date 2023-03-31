@@ -1,4 +1,5 @@
 import random as rd
+import math as mat
 
 class Polynomial :
     # Constructeurs
@@ -84,6 +85,12 @@ class Polynomial :
                 p4.coeff[i + j] = self.coeff[i] * p.coeff[j]
             result = result.add(p4)
         return result
+    
+    def contenu(self) :
+        pgcd = self.coeff[self.deg]
+        for i in range(len(self.coeff)) :
+            pgcd = mat.gcd(pgcd, self.coeff[i])
+        return pgcd
 
     # Euclidian div par un polynome unitaire
     def euclidianDiv(self, p) :
@@ -125,17 +132,77 @@ class Polynomial :
             v2 = vs.sub(q.mul(v2))
 
         return (r1,u1,v1)
+    
+    def bezoutInt(self, p) : 
+        r1 = self.copy()
+        r2 = p.copy()
+        u1 = Polynomial(0, fixed_value = [1])
+        u2 = Polynomial(0, fixed_value = [0])
+        v1 = Polynomial(0, fixed_value = [0])
+        v2 = Polynomial(0, fixed_value = [1])
+
+        while(not r2.isZero()) :
+            d,q,r = r1.euclidianDivInt(r2)
+            D = Polynomial(0, fixed_value=[d])
+            rs = r1.mul(D)
+            us = u1.mul(D)
+            vs = v1.mul(D)
+
+            r1 = r2
+            u1 = u2
+            v1 = v2
+
+            r2 = rs.sub(q.mul(r2))
+            u2 = us.sub(q.mul(u2))
+            v2 = vs.sub(q.mul(v2))
+
+        return (r1,u1,v1)
+    
+     # Euclidian div par un polynome coeff entier
+    def euclidianDivInt(self, p) :
+        if p.isZero() : raise ZeroDivisionError
+        q = Polynomial(0)
+        r = self.copy()
+        m = self.deg
+        n = p.deg
+        d = p.coeff[n]
+        D = Polynomial(0, fixed_value=[d])
+        e = m - n + 1
+        
+        while((not r.isZero()) and r.deg >= n) : 
+            print(r)
+            s = Polynomial(r.deg - n)
+            s.coeff[r.deg - n] = r.coeff[r.deg]
+            q = q.mul(D).add(s)
+            r = r.mul(D).sub(s.mul(p))
+            e -= 1
+        # print("OUF =",q.mul(p).add(r))
+        d = pow(d, e)
+        D = Polynomial(0, fixed_value=[d])
+        q = q.mul(D)
+        r = r.mul(D)
+        d = pow(p.coeff[n], m - n + 1)
+        return (d, q, r)
 
 # Tests
 if __name__ == "__main__" :
-    p1 = Polynomial(4, fixed_value = [1,1,1,1,1])
-    p2 = Polynomial(2, fixed_value = [1,1,1])
+    p1 = Polynomial(10, True, 10)
+    p2 = Polynomial(5, True, 10)
     print("P1 =", p1)
     print("P2 =", p2)
-    print("P1 + P2 =", p1.add(p2))
-    print("P1 + P2 - P2 =", p1.add(p2).sub(p2))
-    print("P1 * P2 =", p1.mul(p2))
-    q,r = p1.euclidianDiv(p2)
-    print("P1 = P2*Q + R = (", p2, ") * (", q, ") + (", r, ") =", (p2.mul(q)).add(r))
-    r,u,v = p1.bezout(p2)
-    print("R = P1*U + P2*V = (", p1, ")*(", u, ") + (", p2, ")*(", v, ") =", (p1.mul(u)).add(p2.mul(v)))
+    # print("P1 + P2 =", p1.add(p2))
+    # print("P1 + P2 - P2 =", p1.add(p2).sub(p2))
+    # print("P1 * P2 =", p1.mul(p2))
+    # q,r = p1.euclidianDiv(p2)
+    # print("P1 = P2*Q + R = (", p2, ") * (", q, ") + (", r, ") =", (p2.mul(q)).add(r))
+    # r,u,v = p1.bezout(p2)
+    # print("R = P1*U + P2*V = (", p1, ")*(", u, ") + (", p2, ")*(", v, ") =", (p1.mul(u)).add(p2.mul(v)))
+    d, q, r = p1.euclidianDivInt(p2)
+    D = Polynomial(0, fixed_value=[d])
+    print(d, q, r)
+    print(p2.mul(q).add(r))
+    print(p1.mul(D))
+    
+    r, u, v = p1.bezoutInt(p2)
+    print(r, u, v)
+    print((p1.mul(u)).add(p2.mul(v)))

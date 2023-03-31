@@ -1,4 +1,4 @@
-CC=g++ -Wall
+CC=g++ -Wall -std=c++11
 INCL=-Iinclude
 CCO=$(CC) -c $(INCL) -o $@ $< 
 

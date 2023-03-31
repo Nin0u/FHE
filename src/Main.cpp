@@ -1,5 +1,5 @@
+#include "Polynomial.hpp"
 #include <iostream>
-#include <Polynomial.hpp>
 
 using namespace std;
 
@@ -19,10 +19,10 @@ int main(void)
 
     Polynomial p3{4};
     p3[0] = 1;
-    p3[4] = 1;
+    p3[4] = 2;
     cout << p3 << endl;
     euclidianDiv(p1, p3);
-    extendedGCD(p1, p3);
+    //extendedGCD(p1, p3);
 
 
     return 0;
