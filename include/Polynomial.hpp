@@ -4,45 +4,46 @@
 #include <vector>
 #include <iostream>
 #include <time.h>
-#include "Fraction.hpp"
-
 
 class Polynomial{
     private:
-        std::vector<Fraction> coeffs;
+        std::vector<long long int> coeffs;
         int deg;
 
     public:
         // Constructeurs
         Polynomial();
         Polynomial(int deg);
-        Polynomial(std::vector<Fraction> v, int deg);
+        Polynomial(std::vector<long long int> v, int deg);
         Polynomial(const Polynomial &p);
-        void generatePolynomial(int min_deg, int max_deg, int max_coeffs);
+        void generatePolynomial(int deg, long long int max_coeffs);
 
         Polynomial &operator=(Polynomial p);
 
-        Polynomial mult(int d);
+        void div(long long int d);
+        Polynomial mult(long long int d);
+
+        long long int contenu();
 
         // Getter
         int getDegree();
 
         // Surchage d'opérateurs
-        Fraction &operator[](int i);
-        friend Polynomial operator+(Polynomial & p1, Polynomial &p2);
-        friend Polynomial operator-(Polynomial & p1, Polynomial &p2);
-        friend Polynomial operator*(Polynomial & p1, Polynomial &p2);
+        long long int &operator[](int i);
+        friend Polynomial operator+(Polynomial p1, Polynomial p2);
+        friend Polynomial operator-(Polynomial p1, Polynomial p2);
+        friend Polynomial operator*(Polynomial p1, Polynomial p2);
 
         // Affichage
         friend std::ostream &operator<<(std::ostream &out, const Polynomial &p);
 
-        friend Polynomial euclidianDiv(Polynomial &p1, Polynomial &p2);
+        friend std::tuple<long long int, Polynomial, Polynomial> euclidianDiv(Polynomial &p1, Polynomial &p2);
 
-        friend Polynomial extendedGCD( Polynomial &p1,  Polynomial &p2);
+        friend std::tuple<Polynomial, Polynomial, Polynomial> extendedGCD( Polynomial &p1,  Polynomial &p2);
         // Bezout
 
 };
 
-int puiss(int x,int n);
+long long int puiss(long long int x,int n);
 
 #endif

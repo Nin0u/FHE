@@ -1,5 +1,8 @@
 #include "Polynomial.hpp"
 #include <iostream>
+#include <tuple>
+#include <cmath>
+#include <algorithm>
 
 using namespace std;
 
@@ -14,7 +17,7 @@ Polynomial::Polynomial(int deg) : coeffs{}, deg{deg}
     }
 }
 
-Polynomial::Polynomial(vector<Fraction> v, int deg) : coeffs{v}, deg{deg}
+Polynomial::Polynomial(vector<long long int> v, int deg) : coeffs{v}, deg{deg}
 {
 }
 
@@ -35,28 +38,34 @@ Polynomial &Polynomial::operator=(Polynomial p) {
 }
 
 // Génère aléatoirement un polynome
-void Polynomial::generatePolynomial(int min_deg, int max_deg, int max_coeffs){
-    srand(time(NULL));
-    int n = (rand() % (max_deg - min_deg + 1)) + min_deg;
-
-    for(int i = 0; i <= n; i++){
+void Polynomial::generatePolynomial(int deg, long long int max_coeffs){
+    coeffs.reserve(deg + 1);
+    for(int i = 0; i <= deg; i++){
         coeffs.push_back(rand() % (max_coeffs + 1));
         if (rand() % 2) coeffs[i] *= -1;
     }
-    if(coeffs[n] == 0) coeffs[n] = 1;
-    this->deg = n;
+    if(coeffs[deg] == 0) coeffs[deg] = 1;
+    this->deg = deg;
 }
 
 // Renvoie le degré
 int Polynomial::getDegree() { return deg; }
 
 // [] : retourne le coefficient de X^i
-Fraction &Polynomial::operator[](int i){
+long long int &Polynomial::operator[](int i){
     return coeffs[i];
 }
 
+long long int Polynomial::contenu()
+{
+    long long int pgcd = 0;
+    for(int i = 0; i <= deg; i++)
+        pgcd = __gcd(pgcd, coeffs[i]);
+    return pgcd;
+}
+
 // Somme de deux polynômes
-Polynomial operator+(Polynomial &p1, Polynomial &p2){
+Polynomial operator+(Polynomial p1, Polynomial p2){
     Polynomial p3{p2.deg >= p1.deg ? p2.deg : p1.deg};
     if (p2.deg >= p1.deg) {
 
@@ -92,7 +101,7 @@ Polynomial operator+(Polynomial &p1, Polynomial &p2){
 
 
 // Soustraction Polynome
-Polynomial operator-(Polynomial &p1, Polynomial &p2){
+Polynomial operator-(Polynomial p1, Polynomial p2){
     Polynomial p3{p2};
     
     for(int i = 0; i <= p2.deg; i++)
@@ -103,10 +112,10 @@ Polynomial operator-(Polynomial &p1, Polynomial &p2){
 
 // Produit de deux polynômes
 // TODO: Un Karatsuba permettrai d'obtimiser ça !
-Polynomial operator*(Polynomial &p1, Polynomial &p2){
+Polynomial operator*(Polynomial p1, Polynomial p2){
     Polynomial p3{p1.deg + p2.deg};
     for(int n = 0; n <= p1.deg + p2.deg; n++) {
-        Fraction sum = 0;
+        long long int sum = 0;
         for(int k = 0; k <= n; k++) {
             if(k <= p1.deg && (n - k) <= p2.deg && (n - k) >= 0)
                 sum += (p1[k] * p2[n - k]);
@@ -122,102 +131,116 @@ ostream &operator<<(std::ostream &out, const Polynomial &p){
     out << p.coeffs[0] << " ";
     if(p.deg == 0) 
     {
-        out << endl;
         return out;
     }
     out << "+ " << p.coeffs[1] << "X ";
     for(int i = 2; i <= p.deg; i++)
         out << "+ " << p.coeffs[i] << "X^" << i << " ";
-    out << endl;
 
     return out;
 }
 
-// Euclidian Div par un polynome unitaire !!!!
-Polynomial euclidianDiv(Polynomial &p1, Polynomial &p2)
-{
-    Polynomial q{0};
-    Polynomial r{p1};
-    int d = p2.deg;
-    Fraction c = p2.coeffs[d];
-
-    int i = 0;
-
-    while(r.deg >= d && i <= 5)
-    {
-        Polynomial s{r.deg - d};
-        s[r.deg - d] = r[r.deg] / c;
-        //cout << s;
-        q = q + s;
-        s = (p2 * s);
-        r = r - s;
-        i++;
-    }
-
-    //cout << q ;
-    //cout << r;
-
-    Polynomial pp = p2 * q;
-    pp = pp + r;
-    cout << pp;
-
-    return q;
-}
-
-Polynomial Polynomial::mult(int d)
+Polynomial Polynomial::mult(long long int d)
 {
     Polynomial p{deg};
 
     for(int i = 0; i <= deg; i++) {
         p.coeffs[i] = d * coeffs[i];
     }
-
+    if(d == 0) p.deg = 0;
     return p;
 }
 
-int puiss(int x,int n) {
-    cout << n<< endl;
-    if(n <= 1) return x ;
-    int x2 = (x * x);
-    if(n % 2 == 0) return puiss(x2, n << 1);
-    else return (x * puiss(x2, (n-1) << 1));
+void Polynomial::div(long long int d)
+{
+    for(int i = 0; i <= deg; i++)
+        coeffs[i] /= d;
+}
+
+// Euclidian Div par un polynome unitaire !!!!
+tuple<long long int, Polynomial, Polynomial> euclidianDiv(Polynomial &p1, Polynomial &p2)
+{
+    Polynomial q{0};
+    Polynomial r{p1};
+    int n = p2.deg;
+    int m = p1.deg;
+    long long d = p2[n];
+    int e = m - n + 1;
+    while(!(r.coeffs[0] == 0 && r.deg == 0) && r.deg >= n)
+    {
+       // cout << "R = " << r << endl;
+        Polynomial s{r.deg - n};
+        s[r.deg - n] = r[r.deg];
+        //cout << "S = " << s << endl;
+        q = q.mult(d) + s;
+        r = r.mult(d) - (s * p2);
+        e--;
+    }
+   // cout << "FIN" << endl;
+    d = puiss(d, e);
+    q = q.mult(d);
+    r = r.mult(d);
+    d = puiss(p2[n], m - n + 1);
+    //cout << "d == " << p2[n] << " " << m - n + 1 << " " << puiss(p2[n], m - n + 1) << endl;
+    //cout << "d = " << d << endl;
+    return std::make_tuple(d, q, r);
+}
+
+
+long long int puiss(long long int x, int y)
+{
+    int res = 1;
+    while (y > 0) 
+    {
+        if (y % 2 == 1)
+            res = (res * x);
+        y = y >> 1;
+        x = (x * x);
+    }
+    return res;
 }
 
 // Bezout
-Polynomial extendedGCD(Polynomial &p1, Polynomial &p2)
+tuple<Polynomial, Polynomial, Polynomial> extendedGCD(Polynomial &p1, Polynomial &p2)
 {
-    Polynomial r0{p1}, r1{p2}, s0{{1}, 0}, s1{{0}, 0}, t0{{0}, 0}, t1{{1}, 0};
-    int i = 1;
-    while(r1.coeffs[0] != 0 || r1.deg != 0)
+    Polynomial r1{p1}, r2{p2}, u1{{1}, 0}, u2{{0}, 0}, v1{{0}, 0}, v2{{1}, 0};
+    // int i = 1;
+    cout << "DEBUT" << endl;
+    while(!( r1.deg == 0))
     {
-        Polynomial q = euclidianDiv(r0, r1);
-        Polynomial qri = q * r1;
-        Polynomial qsi = q * s1;
-        Polynomial qti = q * t1;
-        
-        Polynomial r2 = r0 - qri;
-        Polynomial s2 = s0 - qsi;
-        Polynomial t2 = t0 - qti;
+        Polynomial q, r;
+        long long int d;
+        std::tie(d, q, r) = euclidianDiv(r1, r2);
+        Polynomial rs = r1.mult(d);
+        Polynomial us = u1.mult(d);
+        Polynomial vs = v1.mult(d);
 
-        r0 = r1;
         r1 = r2;
-        s0 = s1;
-        s1 = s2;
-        t0 = t1;
-        t1 = t2;
-        cout << "r0 = " << r0 << " r1 = " << r1;
-        cout << "t0 = " << t0 << " t1 = " << t1;
-        cout << "s0 = " << s0 << " s1 = " << s1;
-        i++;
+        u1 = u2;
+        v1 = v2;
+
+        r2 = rs - (q * r2);
+        u2 = us - (q * u2);
+        v2 = vs - (q * v2);
+
+        long long int pgcd = __gcd(r2.contenu(), __gcd(u2.contenu(), v2.contenu()));
+        if(pgcd != 0)
+        {
+            r2.div(pgcd);
+            u2.div(pgcd);
+            v2.div(pgcd);
+        }
+
     } 
 
-    cout << r0;
-    cout << s0;
-    cout << t0;
+    // cout << r0;
+    // cout << s0;
+    // cout << t0;
+    
+    // Polynomial res1 = p1 * s0;
+    // Polynomial res2 = p2 * t0;
 
-    Polynomial res1 = p1 * s0;
-    Polynomial res2 = p2 * t0;
-
-    cout << res1 + res2 << endl;
-    return r1;
+    // cout << res1 + res2 << endl;
+    // return r1;
+    return make_tuple(r1, u1, v1);
 }
