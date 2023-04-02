@@ -206,7 +206,7 @@ tuple<Polynomial, Polynomial, Polynomial> extendedGCD(Polynomial &p1, Polynomial
     Polynomial r1{p1}, r2{p2}, u1{{1}, 0}, u2{{0}, 0}, v1{{0}, 0}, v2{{1}, 0};
     // int i = 1;
     cout << "DEBUT" << endl;
-    while(!( r1.deg == 0))
+    while(!(r2[0] == 0 && r2.deg == 0))
     {
         Polynomial q, r;
         long long int d;
@@ -214,6 +214,8 @@ tuple<Polynomial, Polynomial, Polynomial> extendedGCD(Polynomial &p1, Polynomial
         Polynomial rs = r1.mult(d);
         Polynomial us = u1.mult(d);
         Polynomial vs = v1.mult(d);
+
+        cout << rs << " " << us << " " << vs << endl;
 
         r1 = r2;
         u1 = u2;

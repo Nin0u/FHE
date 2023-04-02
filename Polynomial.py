@@ -11,6 +11,7 @@ class Polynomial :
         if fill : 
             for i in range(n + 1) :
                 self.coeff[i] = rd.randint(-max_coeff, max_coeff)
+            if(self.coeff[n] == 0) : self.coeff[n] = 1
         if fixed_value != None : 
             n = len(fixed_value) -1
             for i in range(len(fixed_value)) :
@@ -192,6 +193,16 @@ class Polynomial :
         r = r.mul(D)
         d = pow(p.coeff[n], m - n + 1)
         return (d, q, r)
+    
+    def eval(self, r, mod) :
+        sum = 0
+        Ri = 1
+        for i in range(len(self.coeff)) :
+            sum += self.coeff[i] * Ri
+            #sum %= mod
+            Ri *= r
+            #Ri %= mod
+        return sum
 
 # Tests
 if __name__ == "__main__" :

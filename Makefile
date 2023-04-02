@@ -3,7 +3,7 @@ INCL=-Iinclude
 CCO=$(CC) -c $(INCL) -o $@ $< 
 
 OUT_DIR=@mkdir out -p
-OUT=out/Polynomial.o out/Main.o
+OUT=out/Polynomial.o out/Main.o out/UnboundedInt.o
 
 TARGET=main
 
@@ -23,5 +23,9 @@ out/Main.o: src/Main.cpp include/Polynomial.hpp
 	$(CCO)
 
 out/Polynomial.o: src/Polynomial.cpp include/Polynomial.hpp
+	$(OUT_DIR)
+	$(CCO)
+
+out/UnboundedInt.o: src/UnboundedInt.cpp include/UnboundedInt.hpp
 	$(OUT_DIR)
 	$(CCO)

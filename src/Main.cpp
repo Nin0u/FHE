@@ -1,6 +1,7 @@
 #include "Polynomial.hpp"
 #include <iostream>
 #include <tuple>
+#include "UnboundedInt.hpp"
 
 using namespace std;
 
