@@ -56,6 +56,7 @@ class SHE :
         self.d = d
         self.r = r
         self.w = V
+        self.wi = V.coeff[i]
         return True
     
     def keyGen(self) :
@@ -76,29 +77,76 @@ class SHE :
         
         a = b.add(u)
         c = a.eval(self.r, self.d) % self.d
-        if(c > self.d / 2) : c -= self.d
+        if(c > self.d // 2) : c -= self.d
         return c
         
     
     def Decrypt(self, ciphertext) :
-        wi = 0
-        for i in range(self.w.deg + 1) :
-            if(self.w.coeff[i] % 2 == 1) :
-                wi = self.w.coeff[i]
-                break
+        wi = self.wi
         m = (wi * ciphertext) % self.d
-        if(m >= self.d / 2) : m -= self.d
+        if(m >= self.d // 2) : m -= self.d
         b = m % 2
         return b
+    
+    def EncryptBis(self, bit) :
+        res = []
+        ciphertext = self.Encrypt(bit)
+        res.append(ciphertext)
+        for i in range(len(self.t)) :
+            res.append(ciphertext * self.t[i])
+        return res
+    
+    def ExpandCipher(self, cipher) :
+        res = []
+        res.append(cipher)
+        for i in range(len(self.t)) :
+            res.append(cipher * self.t[i])
+        return res
+    
+    def DecryptBis(self, cipher) :
+        m = 0
+        for i in range(len(self.t)) :
+            m += cipher[i + 1] * self.sigma[i]
+        m %= self.d
+        if(m >= self.d // 2) : m -= self.d
+        return m % 2
+    
+    def SplitKey(self) :
+        t1 = rd.randint(-self.d//2,self.d//2)
+        t2 = rd.randint(-self.d//2,self.d//2)
+        t3 = self.wi - t1
+        self.t = []
+        self.t.append(t1)
+        self.t.append(t2)
+        self.t.append(t3)
+        self.sigma = []
+        self.sigma.append(1)
+        self.sigma.append(0)
+        self.sigma.append(1)
+        
+    def Recrypt(self, cipher) :
+        cryptoKey = []
+        for i in range(len(self.sigma)):
+            cryptoKey.append(self.Encrypt(self.sigma[i]))
+        
+        m = 0
+        for i in range(len(self.t)) :
+            m += cipher[i + 1] * cryptoKey[i]
+        m %= self.d
+        if(m >= self.d // 2) : m -= self.d
+        return self.ExpandCipher(m)
                 
 if __name__ == "__main__":
-    crypto = SHE(3) # X^4 + 1
+    crypto = SHE(2) # X^4 + 1
     crypto.keyGen()
     print("V =", crypto.v)
     print("W =", crypto.w)
     print("dd =", crypto.v.mul(crypto.w).euclidianDivInt(crypto.polMod)[2])
     print("d =", crypto.d)
     print("r =", crypto.r)
+    print("wi =", crypto.wi)
+    
+    print("############## TEST ENCRYPT/DECRYPT ############")
     bit1 = rd.randint(0, 1)
     bit2 = rd.randint(0, 1)
     print("bit1 =", bit1)
@@ -116,3 +164,43 @@ if __name__ == "__main__":
     print("b2 =", b2)
     print("b1 + b2 =", b3)
     print("b1 * b2 =", b4)
+    print()
+    
+    print("############## TEST ENCRYPT/DECRYPT BIS ############")
+    crypto.SplitKey()
+    bit1 = rd.randint(0, 1)
+    bit2 = rd.randint(0, 1)
+    print("bit1 =", bit1)
+    print("bit2 =", bit2)
+    ciphertext1 = crypto.EncryptBis(bit1)
+    ciphertext2 = crypto.EncryptBis(bit2)
+    print("c1 =", ciphertext1)
+    print("c2 =", ciphertext2)
+    
+    b1 = crypto.DecryptBis(ciphertext1)
+    b2 = crypto.DecryptBis(ciphertext2)
+    ciphertextSum = [ciphertext1[i] + ciphertext2[i] for i in range(len(ciphertext1))]
+    b3 = crypto.DecryptBis(ciphertextSum)
+    ciphertextMul = crypto.ExpandCipher(ciphertext1[0] * ciphertext2[0])
+    # ciphertextMul = [ciphertext1[i] * ciphertext2[i] for i in range(len(ciphertext1))]
+    b4 = crypto.DecryptBis(ciphertextMul)
+    print("b1 =", b1)
+    print("b2 =", b2)
+    print("b1 + b2 =", b3)
+    print("b1 * b2 =", b4)
+    print()
+    
+    #! Question comment rencrypter la clé secrete, ie les t[i] !
+    # print("############## TEST RECRYPT ############")
+    # bit1 = rd.randint(0, 1)
+    # print("bit1 =", bit1)
+    # ciphertext1 = crypto.EncryptBis(bit1)
+    # ciphertext2 = crypto.Recrypt(ciphertext1)
+    # print(ciphertext1)
+    # print(ciphertext2)
+    # b1 = crypto.DecryptBis(ciphertext1)
+    # b2 = crypto.DecryptBis(ciphertext2)
+    
+    # print("b1 =", b1)
+    # print("b2 =", b2)
+    
