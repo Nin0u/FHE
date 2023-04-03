@@ -1,8 +1,21 @@
 import random as rd
-import math as mat
+from math import gcd
 
+"""
+    Cette classe représente un polynome
+    Attributs : 
+        - deg : Le degré du polynome
+        - coeff : liste des coefficients. coeff[i] représente le coeff de X^i 
+"""
 class Polynomial :
-    # Constructeurs
+    """
+        Constructeur
+        Paramètres : 
+            - n : le degré
+            - fill : booleen indiquant s'il faut remplir les coeffs aléatoirement
+            - max_coeff : lié à fill, il représente l'intervalle dans lequel on peut tirer les coeffs
+            - fixed_value : liste de coefficients si on veut définit le polynome à la main
+    """
     def __init__(self, n, fill = False, max_coeff = None, fixed_value = None) :
         self.deg = n
         self.coeff = []
@@ -11,11 +24,12 @@ class Polynomial :
         if fill : 
             for i in range(n + 1) :
                 self.coeff[i] = rd.randint(-max_coeff, max_coeff)
-            if(self.coeff[n] == 0) : self.coeff[n] = 1
         if fixed_value != None : 
             n = len(fixed_value) -1
             for i in range(len(fixed_value)) :
                 self.coeff[i] = fixed_value[i]
+            for i in range(len(fixed_value),n+1) : 
+                self.coeff[i] = 0
     
     # toString
     def __str__(self) : 
@@ -87,17 +101,19 @@ class Polynomial :
             result = result.add(p4)
         return result
     
+    # Division
     def div(self, elt) :
         for i in range(len(self.coeff)) :
             self.coeff[i] //= elt
     
+    # Contenu
     def contenu(self) :
         pgcd = 0
         for i in range(len(self.coeff)) :
-            pgcd = mat.gcd(pgcd, self.coeff[i])
+            pgcd = gcd(pgcd, self.coeff[i])
         return pgcd
 
-    # Euclidian div par un polynome unitaire
+    # Division Euclidienne par un polynome unitaire
     def euclidianDiv(self, p) :
         if p.isZero() : raise ZeroDivisionError
         q = Polynomial(0)
@@ -114,6 +130,7 @@ class Polynomial :
 
         return (q, r)
 
+    # Applique Euclide étendu pour trouver une relation de Bezout
     def bezout(self, p) : 
         r1 = self.copy()
         r2 = p.copy()
@@ -138,6 +155,7 @@ class Polynomial :
 
         return (r1,u1,v1)
     
+    # Bezout sur les entiers
     def bezoutInt(self, p) : 
         r1 = self.copy()
         r2 = p.copy()
@@ -161,7 +179,7 @@ class Polynomial :
             u2 = us.sub(q.mul(u2))
             v2 = vs.sub(q.mul(v2))
             
-            pgcd = mat.gcd(r2.contenu(), mat.gcd(u2.contenu(), v2.contenu()))
+            pgcd = gcd(r2.contenu(), gcd(u2.contenu(), v2.contenu()))
             if(pgcd != 0) :
                 r2.div(pgcd)
                 u2.div(pgcd)
@@ -169,7 +187,7 @@ class Polynomial :
 
         return (r1,u1,v1)
     
-     # Euclidian div par un polynome coeff entier
+    # Division euclidienne par un polynome à coeff entiers
     def euclidianDivInt(self, p) :
         if p.isZero() : raise ZeroDivisionError
         q = Polynomial(0)
@@ -194,14 +212,15 @@ class Polynomial :
         d = pow(p.coeff[n], m - n + 1)
         return (d, q, r)
     
+    # Evaluation d'un polynome
     def eval(self, r, mod) :
         sum = 0
         Ri = 1
         for i in range(len(self.coeff)) :
             sum += self.coeff[i] * Ri
-            #sum %= mod
+            sum %= mod
             Ri *= r
-            #Ri %= mod
+            Ri %= mod
         return sum
 
 # Tests

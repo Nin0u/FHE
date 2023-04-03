@@ -11,22 +11,32 @@ def xgcd(a,b):
         a, b = b, r
     return a, prevx, prevy
 
-
-
-
 # Attribut :
 # le polynome X^n + 1 où n est une puissance de 2
 # le polynome v(x) la clé secrete
 # le polynome w(x) aussi la clé secrete
 # d de la HNF clé publique
 # r de la HNF clé publique
+"""
+    Classe représentant le SHE
+     Attribut :
+        - polMod : le polynome X^n + 1 où n est une puissance de 2
+        - deg : le degré de polMod qui est aussi la dimension du réseau
+
+        - v : le polynome v(x) qui est la clé secrete
+        - w : le polynome w(x) qui est aussi la clé secrete
+        - d de la HNF clé publique
+        - r de la HNF clé publique
+"""
 class SHE :
+    # Constructeur
     def __init__(self, deg) :
         self.polMod = Polynomial(1 << deg)
         self.polMod.coeff[0] = 1
         self.polMod.coeff[1 << deg] = 1
         self.deg = 1 << deg
         
+    # =========== GENERATION DES CLES =========== #
     def keyGenAux(self) :
         self.v = Polynomial(self.deg - 1, True, 1 << 10)
         G, U, V = self.polMod.bezoutInt(self.v)
@@ -43,7 +53,7 @@ class SHE :
         oddCoeff = False
         for i in range(len(V.coeff)) :
             if V.coeff[i]  % 2 == 1 :
-                oddCoeff = 1
+                oddCoeff = True
                 break
         if not oddCoeff : return False
         
@@ -63,24 +73,21 @@ class SHE :
         while(not crypto.keyGenAux()) :
             a = 0
     
+    # Encryption
     def Encrypt(self, bit) :
+        # On convertit le bit a encoder en polynome
         b = Polynomial(self.deg - 1, fixed_value=[bit])
-        for i in range(1, self.deg) :
-            b.coeff[i] = 0
         
-        u = Polynomial(self.deg - 1)
-        for i in range(self.deg) :
-            u.coeff[i] = rd.randint(-1, 1)
-        
-        
+        # Calcul de 2u 
+        u = Polynomial(self.deg - 1, fill = True, max_coeff = 1)
         u = u.mul(Polynomial(0, fixed_value=[2]))
         
         a = b.add(u)
-        c = a.eval(self.r, self.d) % self.d
+        c = a.eval(self.r, self.d)
         if(c > self.d // 2) : c -= self.d
         return c
         
-    
+    # Decryption
     def Decrypt(self, ciphertext) :
         wi = self.wi
         m = (wi * ciphertext) % self.d
@@ -137,7 +144,7 @@ class SHE :
         return self.ExpandCipher(m)
                 
 if __name__ == "__main__":
-    crypto = SHE(2) # X^4 + 1
+    crypto = SHE(8) # X^4 + 1
     crypto.keyGen()
     print("V =", crypto.v)
     print("W =", crypto.w)
