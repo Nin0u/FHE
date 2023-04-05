@@ -25,7 +25,8 @@ int main(void)
     Polynomial q,r;
 
     tie(d,q,r) = p1.EuclidianDiv(p2);
-    d.write(cout) << " * (" << p1 << ") = (" << q << ") * (" << p2 << ") + " << r << endl;    
+    cout << p1 * d << endl;
+    cout << p2 * q + r << endl;    
 
     return 0;
 }

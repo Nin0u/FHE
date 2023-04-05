@@ -204,44 +204,40 @@ int Polynomial::isZero(){
  * 
  * @return Un tuple contenant d, B, R
  */
-tuple<BigInt, Polynomial, Polynomial> Polynomial::EuclidianDiv(Polynomial Q){
-    if (Q.isZero()) throw domain_error("Division by Zero");
-    Polynomial B{0};
-    Polynomial R{*this};
+tuple<BigInt, Polynomial, Polynomial> Polynomial::EuclidianDiv(Polynomial p){
+    if (p.isZero()) throw domain_error("Division by Zero");
+    Polynomial q{0};
+    Polynomial r{*this};
     int m = deg;
-    int n = Q.deg;
-    BigInt d = Q[n];
-    vector<BigInt> v{1};
-    v.push_back(d);
-    Polynomial D{0, v};
+    int n = p.deg;
+    BigInt d = p[n];
     int e = m - n + 1;
 
-    while(!R.isZero() && R.deg >= n){
-        cout << "R = " << R << endl;
-        Polynomial s{R.deg - n};
-        cout << "R.deg - n = " << R.deg -n << endl;
-        cout << "s[R.deg -n] = ";
-        s[R.deg - n].write(cout) << endl;
-        cout << "R[R.deg] = ";
-        R[R.deg].write(cout) << endl;
-        s[R.deg - n] = R[R.deg]; // ! Seg Fault Ici
-        cout << "S = " << s << endl;
-        B = (B * D) + s;
-        cout << "B = " << B << endl;
-        R = (R * D) - (s * *this);
-        cout << "R = " << R << endl;
+    while(!r.isZero() && r.deg >= n){
+        cout << "r = " << r << endl;
+        Polynomial s{r.deg - n};
+        cout << "r.deg - n = " << r.deg -n << endl;
+        cout << "s[r.deg -n] = ";
+        s[r.deg - n].write(cout) << endl;
+        cout << "r[r.deg] = ";
+        r[r.deg].write(cout) << endl;
+        s[r.deg - n] = r[r.deg];
+        cout << "s = " << s << endl;
+        q = (q * d) + s;
+        cout << "q = " << q << endl;
+        r = (r * d) - (s * p);
+        cout << "r = " << r << endl;
         e--;
         cout << "e = " << e << endl;
     }
     cout << "ouf" << endl;
 
     d = d.pow(e);
-    D = Polynomial(0, {d});
-    B = B * D;
-    R = R * D;
-    d = coeffs[n].pow(m - n + 1);
+    q = q * d;
+    r = r * d;
+    d = p[n].pow(m - n + 1);
 
-    return std::tie(d,B,R);
+    return std::tie(d,q,r);
 }
 
 /**
