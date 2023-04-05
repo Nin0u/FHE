@@ -55,9 +55,13 @@ Polynomial::Polynomial(int deg, BigInt max_coeffs, int coeffs_nb_bits) : deg{deg
     srand(time(NULL));
     coeffs.reserve(deg + 1);
     for(int i = 0; i <= deg; i++){
-        coeffs[i] = (BigInt::rand_bits(rand() % c, rd)) % BigInt{max_coeffs + 1};
+        coeffs[i] = BigInt{1};
+        //TODO: PETIT TRUC
+        coeffs[i] = BigInt{rand() % 100};  //BigInt::rand_bits(rand() % c, rd);
+        //coeffs[i] = (BigInt::rand_bits(rand() % c, rd)) % BigInt{max_coeffs + 1};
         if (rand() % 2) coeffs[i] *= BigInt{-1};
     }
+    if(coeffs[deg] == BigInt{0}) coeffs[deg] = BigInt{1};
 }
 
 /**

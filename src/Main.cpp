@@ -43,13 +43,14 @@ void test_polynomials(){
 
 void test_SHE(){
     cout << "ok" << endl;
-    SHE she{8};
+    SHE she{4};
     she.genKey();
-    cout << she << endl;
+    //cout << she << endl;
 }
 
 int main(void) 
 {
-    test_SHE();
+   test_SHE();
+   //test_polynomials();
     return 0;
 }

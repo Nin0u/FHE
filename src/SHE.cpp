@@ -10,7 +10,7 @@ using namespace std;
 SHE::SHE(int n) : deg{1 << n}, polMod{1 << n}
 {
     polMod[0] = BigInt{1};
-    polMod[(1<< n) + 1] = BigInt{1};  
+    polMod[(1<< n)] = BigInt{1};  
 }
 
 /** Générateur de clé */
