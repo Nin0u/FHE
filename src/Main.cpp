@@ -45,11 +45,13 @@ void test_SHE(){
     cout << "ok" << endl;
     SHE she{4};
     she.genKey();
-    //cout << she << endl;
+    cout << she << endl;
 }
 
 int main(void) 
 {
+    srand(time(NULL));
+
    test_SHE();
    //test_polynomials();
     return 0;

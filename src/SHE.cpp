@@ -19,7 +19,7 @@ int SHE::genKeyCandidate()
     v = Polynomial{deg - 1, BigInt{100}};
     Polynomial G,U,V;
     tie(G,U,V) = polMod.Bezout(v);
-    if (G.getDegree() == 0) return 0;
+    if (G.getDegree() != 0) return 0;
     BigInt d  = G[0];
     if (d < 0) {
         d = d * BigInt{-1};
@@ -29,10 +29,26 @@ int SHE::genKeyCandidate()
     int index_odd_coeff = V.hasOddCoeff();
     if (index_odd_coeff == -1) return 0;
     BigInt g,v1,v2;
-    tie(g, v1, v2) = BigInt::xgcd(V[1],d);
+    cout << "d1 = ";
+    d.write(cout) << endl;
+    cout << "v1 = ";
+    V[1].write(cout) << endl;
+
+
+    tie(g, v1, v2) = BigInt::xgcd(d,V[1]);
+    cout << "d2 = ";
+    d.write(cout) << endl;
+    cout << "v2 = ";
+    V[1].write(cout) << endl;
     if(g != BigInt{1}) return 0;
     r = (V[0] * v1) % d;
-    BigInt res = (r.powmod(BigInt{deg}, d) + 1) % d;
+    if(r < 0) r *= BigInt{-1};
+    cout << "D = ";
+    d.write(cout) << endl;
+    cout << "R = ";
+    r.write(cout) << endl;
+    BigInt res = (r.powmod(BigInt{deg}, d) + BigInt{1}) % d;
+    //res.write(cout) << endl;
     if(res != BigInt{0}) return 0; 
     this->d = d;
     this->r = r;

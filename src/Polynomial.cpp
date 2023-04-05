@@ -52,7 +52,6 @@ Polynomial::Polynomial(int deg, BigInt max_coeffs, int coeffs_nb_bits) : deg{deg
     int c = coeffs_nb_bits;
     if(coeffs_nb_bits == -1) c = max_coeffs.bitlength();
 
-    srand(time(NULL));
     coeffs.reserve(deg + 1);
     for(int i = 0; i <= deg; i++){
         coeffs[i] = BigInt{1};
