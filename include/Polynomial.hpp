@@ -24,7 +24,7 @@ class Polynomial{
         Polynomial();
         Polynomial(int deg);
         Polynomial(int deg, std::vector<BigInt> fill_values);
-        Polynomial(int deg, BigInt max_coeffs);
+        Polynomial(int deg, BigInt max_coeffs, int coeffs_nb_bits = -1);
         Polynomial(const Polynomial &p);
 
         // Getter

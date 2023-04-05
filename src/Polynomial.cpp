@@ -38,7 +38,6 @@ Polynomial::Polynomial(int deg, vector<BigInt> fill_values) : deg{deg}, coeffs{f
 
 /** Fonction qui aide à générer des BigInt */
 void rd(uint8_t * dst, int n){
-    srand(time(NULL));
     for(int i = 1; i < n; i++) dst[i] = (uint8_t)(rand());
 }
 
@@ -49,16 +48,17 @@ void rd(uint8_t * dst, int n){
  * @param deg Le degré du polynome
  * @param max_coeffs borne qui définit l'intervalle des coefficients [-max_coeffs, max_coeffs]
  */
-Polynomial::Polynomial(int deg, BigInt max_coeffs) : deg{deg}, coeffs{}
+Polynomial::Polynomial(int deg, BigInt max_coeffs, int coeffs_nb_bits) : deg{deg}, coeffs{}
 {
+    int c = coeffs_nb_bits;
+    if(coeffs_nb_bits == -1) c = max_coeffs.bitlength();
+
     srand(time(NULL));
     coeffs.reserve(deg + 1);
     for(int i = 0; i <= deg; i++){
-        coeffs[i] = (BigInt::rand_bits(rand(), rd)) % (max_coeffs + 1);
-        if (rand() % 2) coeffs[i] *= -1;
+        coeffs[i] = (BigInt::rand_bits(rand() % c, rd)) % BigInt{max_coeffs + 1};
+        if (rand() % 2) coeffs[i] *= BigInt{-1};
     }
-    if(coeffs[deg] == 0) coeffs[deg] = 1;
-    this->deg = deg;
 }
 
 /**
@@ -214,23 +214,12 @@ tuple<BigInt, Polynomial, Polynomial> Polynomial::EuclidianDiv(Polynomial p){
     int e = m - n + 1;
 
     while(!r.isZero() && r.deg >= n){
-        cout << "r = " << r << endl;
         Polynomial s{r.deg - n};
-        cout << "r.deg - n = " << r.deg -n << endl;
-        cout << "s[r.deg -n] = ";
-        s[r.deg - n].write(cout) << endl;
-        cout << "r[r.deg] = ";
-        r[r.deg].write(cout) << endl;
         s[r.deg - n] = r[r.deg];
-        cout << "s = " << s << endl;
         q = (q * d) + s;
-        cout << "q = " << q << endl;
         r = (r * d) - (s * p);
-        cout << "r = " << r << endl;
         e--;
-        cout << "e = " << e << endl;
     }
-    cout << "ouf" << endl;
 
     d = d.pow(e);
     q = q * d;
@@ -245,18 +234,22 @@ tuple<BigInt, Polynomial, Polynomial> Polynomial::EuclidianDiv(Polynomial p){
  * 
  * @return Un tuple contenant R,U,V
  */
-tuple<Polynomial, Polynomial, Polynomial> Polynomial::Bezout(Polynomial Q){
+tuple<Polynomial, Polynomial, Polynomial> Polynomial::Bezout(Polynomial p){
     Polynomial R1{*this};
-    Polynomial R2{Q};
-    Polynomial U1{0, {BigInt{1}}};
-    Polynomial U2{0, {BigInt{0}}};
-    Polynomial V1{0, {BigInt{0}}};
-    Polynomial V2{0, {BigInt{1}}};
+    Polynomial R2{p};
+    vector<BigInt> zero{};
+    zero.push_back(0);
+    vector<BigInt> one{};
+    one.push_back(1);
+    Polynomial U1{0, one};
+    Polynomial U2{0, zero};
+    Polynomial V1{0, zero};
+    Polynomial V2{0, one};
 
     while(! R2.isZero()){
         BigInt d;
         Polynomial q,r;
-        std::tie(d,q,r) = R1.EuclidianDiv(R2);
+        tie(d,q,r) = R1.EuclidianDiv(R2);
         
         Polynomial rs = R1 * d;
         Polynomial us = U1 * d;
