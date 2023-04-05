@@ -4,46 +4,49 @@
 #include <vector>
 #include <iostream>
 #include <time.h>
+#include <iostream>
 
+#include "BigInt.hpp"
+
+/**
+    Cette classe représente un polynome
+    Attributs : 
+        - deg : Le degré du polynome
+        - coeff : liste des coefficients. coeff[i] représente le coeff de X^i 
+ */
 class Polynomial{
     private:
-        std::vector<long long int> coeffs;
         int deg;
+        std::vector<BigInt> coeffs;
 
     public:
         // Constructeurs
         Polynomial();
         Polynomial(int deg);
-        Polynomial(std::vector<long long int> v, int deg);
+        Polynomial(int deg, std::vector<BigInt> fill_values);
+        Polynomial(int deg, BigInt max_coeffs);
         Polynomial(const Polynomial &p);
-        void generatePolynomial(int deg, long long int max_coeffs);
-
-        Polynomial &operator=(Polynomial p);
-
-        void div(long long int d);
-        Polynomial mult(long long int d);
-
-        long long int contenu();
 
         // Getter
         int getDegree();
 
         // Surchage d'opérateurs
-        long long int &operator[](int i);
+        BigInt &operator[](int i);
+        Polynomial &operator=(Polynomial p);
         friend Polynomial operator+(Polynomial p1, Polynomial p2);
         friend Polynomial operator-(Polynomial p1, Polynomial p2);
         friend Polynomial operator*(Polynomial p1, Polynomial p2);
-
-        // Affichage
+        friend Polynomial operator*(Polynomial p1, BigInt b);
+        friend Polynomial operator/(Polynomial p1, BigInt d);
         friend std::ostream &operator<<(std::ostream &out, const Polynomial &p);
 
-        friend std::tuple<long long int, Polynomial, Polynomial> euclidianDiv(Polynomial &p1, Polynomial &p2);
+        // Calcul le contenu
+        BigInt contenu();
+        int isZero();
 
-        friend std::tuple<Polynomial, Polynomial, Polynomial> extendedGCD( Polynomial &p1,  Polynomial &p2);
-        // Bezout
+        std::tuple<BigInt, Polynomial, Polynomial> EuclidianDiv(Polynomial Q);
+        std::tuple<Polynomial, Polynomial, Polynomial> Bezout(Polynomial Q);
 
 };
-
-long long int puiss(long long int x,int n);
 
 #endif

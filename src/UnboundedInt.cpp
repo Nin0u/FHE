@@ -1,8 +1,5 @@
 #include "UnboundedInt.hpp"
 
-
-
-
 //Number of bits in unsigned integer, may vary
 const unsigned int UINT_SIZE = (sizeof(unsigned int) * 8);
 
