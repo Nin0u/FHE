@@ -46,7 +46,7 @@ class SHE :
         d = G.coeff[0]
         if d < 0 :
             d *= -1
-            V.mul(Polynomial(0, fixed_value=[-1]))
+            V = V.mul(Polynomial(0, fixed_value=[-1]))
         
         if(d % 2 == 0) : return False
         

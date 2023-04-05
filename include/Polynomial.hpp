@@ -4,20 +4,13 @@
 #include <vector>
 #include <iostream>
 #include <time.h>
-#include <iostream>
 
 #include "BigInt.hpp"
 
-/**
-    Cette classe représente un polynome
-    Attributs : 
-        - deg : Le degré du polynome
-        - coeff : liste des coefficients. coeff[i] représente le coeff de X^i 
- */
 class Polynomial{
     private:
-        int deg;
-        std::vector<BigInt> coeffs;
+        int deg; // Le degré du polynome.
+        std::vector<BigInt> coeffs; // List des coefficients.
 
     public:
         // Constructeurs
@@ -43,6 +36,7 @@ class Polynomial{
         // Calcul le contenu
         BigInt contenu();
         int isZero();
+        int hasOddCoeff();
 
         std::tuple<BigInt, Polynomial, Polynomial> EuclidianDiv(Polynomial Q);
         std::tuple<Polynomial, Polynomial, Polynomial> Bezout(Polynomial Q);

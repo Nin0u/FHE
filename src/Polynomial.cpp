@@ -1,7 +1,5 @@
 #include "Polynomial.hpp"
 #include <tuple>
-#include <cmath>
-#include <algorithm>
 
 using namespace std;
 
@@ -169,14 +167,14 @@ Polynomial operator/(Polynomial p1, BigInt d) {
 
 /** Affichage d'un polynome */
 ostream &operator<<(std::ostream &out, const Polynomial &p){
-    p.coeffs[0].write(cout) << " ";
+    p.coeffs[0].write(out) << " ";
     if(p.deg == 0) return out;
 
     out << "+ ";
-    p.coeffs[1].write(cout) << "X ";
+    p.coeffs[1].write(out) << "X ";
     for(int i = 2; i <= p.deg; i++){
         out << "+ ";
-        p.coeffs[i].write(cout) << "X^" << i << " ";
+        p.coeffs[i].write(out) << "X^" << i << " ";
     }
 
     return out;
@@ -192,12 +190,17 @@ BigInt Polynomial::contenu(){
 
 /** Vérifie si c'est le polynome nul */
 int Polynomial::isZero(){
-    for(int i = 0; i <= deg; i++){
+    for(int i = 0; i <= deg; i++)
         if(coeffs[i] != BigInt{0}) return 0;
-    }
     return 1;
 }
 
+/** Vérifie si le polynome a un coefficient impair */
+int Polynomial::hasOddCoeff(){
+    for(int i = 0; i <= deg; i++)
+        if (coeffs[i] % BigInt{2} == BigInt{1}) return i;
+    return -1;
+}
 /** 
  * Division Euclidienne par un polynome 
  * Cette division doit etre sur les entiers,
@@ -239,8 +242,8 @@ tuple<Polynomial, Polynomial, Polynomial> Polynomial::Bezout(Polynomial p){
     Polynomial R1{*this};
     Polynomial R2{p};
     vector<BigInt> zero{};
-    zero.push_back(0);
-    vector<BigInt> one{};
+    zero.push_back(BigInt{0});
+    vector<BigInt> one{BigInt{1}};
     one.push_back(1);
     Polynomial U1{0, one};
     Polynomial U2{0, zero};

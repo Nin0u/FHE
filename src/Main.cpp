@@ -1,12 +1,12 @@
 #include <iostream>
 #include <tuple>
 #include "Polynomial.hpp"
+#include "SHE.hpp"
 
 using namespace std;
 
-int main(void) 
-{
-    cout << "==== Generation Polynome ====" << endl;
+void test_polynomials(){
+     cout << "==== Generation Polynome ====" << endl;
     Polynomial p1{1, {BigInt{4000000}, BigInt{"2222222222222222222222222"}}};
     cout << "P1 = " << p1 << endl;
 
@@ -39,6 +39,17 @@ int main(void)
     tie(R,U,V) = p1.Bezout(p2);
     cout << "R = " << R << endl;
     cout << "P1 * U + P2 * V = " << (p1 * U) + (p2 * V) << endl;
+}
 
+void test_SHE(){
+    cout << "ok" << endl;
+    SHE she{8};
+    she.genKey();
+    cout << she << endl;
+}
+
+int main(void) 
+{
+    test_SHE();
     return 0;
 }

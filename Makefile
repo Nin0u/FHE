@@ -4,7 +4,7 @@ INCL=-Iinclude
 CCO=$(CC) -c $(INCL) -o $@ $< 
 
 OUT_DIR=@mkdir out -p
-OUT=out/Main.o out/BigInt.o out/Polynomial.o
+OUT=out/Main.o out/BigInt.o out/Polynomial.o out/SHE.o
 
 TARGET=main
 
@@ -28,5 +28,9 @@ out/BigInt.o: src/bigint.c include/BigInt.hpp include/bigint.h
 	gcc -c src/bigint.c $(INCL) -o out/BigInt.o $(FLAGS)
 
 out/Polynomial.o: src/Polynomial.cpp include/Polynomial.hpp include/BigInt.hpp
+	$(OUT_DIR)
+	$(CCO)
+
+out/SHE.o: src/SHE.cpp include/SHE.hpp
 	$(OUT_DIR)
 	$(CCO)

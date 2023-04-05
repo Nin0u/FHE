@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <ostream>
+#include <tuple>
 
 struct BigInt {
     bigint data[1];
@@ -149,11 +150,51 @@ struct BigInt {
         return b;
     }
 
+    BigInt powmod(BigInt exponent, BigInt modulus){
+        BigInt b;
+        bigint_pow_mod(b.data, data, exponent.data, modulus.data);
+        return b;
+    }
+
     static BigInt gcd(const BigInt &a, const BigInt &b){
         BigInt c;
         bigint_gcd(c.data, a.data, b.data);
         return c;
     }
+
+    static std::tuple<BigInt, BigInt, BigInt> xgcd(BigInt &a, BigInt &b){
+    BigInt prevx{1};
+    BigInt x{0};
+    BigInt prevy{0};
+    BigInt y{1};
+
+    BigInt borne{0}; // Evite de récrér l'objet à chaque fois
+    while(bigint_cmp(b.data, borne.data) > 0){
+        BigInt q,r;
+        div_mod(q, r, a, b);
+
+        BigInt auxx{x};
+        BigInt auxy{y};
+
+        // x = prevx - q*x;
+        x *= q;
+        prevx -= x;
+        x = prevx;
+        
+        // y = prevy - q*y;
+        y *= q;
+        prevy -= y;
+        y = prevy;
+    
+        prevx = auxx;
+        prevy = auxy;
+
+        a = b;
+        b = r;
+    }
+
+    return std::tie(a, prevx, prevy);
+}
 
     static BigInt rand_bits(int n_bits, bigint_rand_func rand_func){
         BigInt b;
