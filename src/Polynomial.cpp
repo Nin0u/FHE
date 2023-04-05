@@ -46,7 +46,8 @@ void rd(uint8_t * dst, int n){
  * Génère aléatoirement un polynome 
  * 
  * @param deg Le degré du polynome
- * @param max_coeffs borne qui définit l'intervalle des coefficients [-max_coeffs, max_coeffs]
+ * @param max_coeffs Borne qui définit l'intervalle des coefficients [-max_coeffs, max_coeffs]
+ * @param coeffs_nb_bits Le nombre de bits que contiendra chaque coeff. Valeur par défaut à la longueur de max_coeff. 
  */
 Polynomial::Polynomial(int deg, BigInt max_coeffs, int coeffs_nb_bits) : deg{deg}, coeffs{}
 {
