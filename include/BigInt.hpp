@@ -29,6 +29,7 @@ struct BigInt {
     }
 
     BigInt& operator = (const BigInt &b){
+        bigint_init(data);
         bigint_cpy(data, b.data);
         return *this;
     }
