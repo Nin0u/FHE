@@ -1,14 +1,15 @@
 #include <iostream>
 #include <tuple>
 
-#include "SHE.hpp"
+#include "Polynomial.hpp"
+#include "BigInt.hpp"
 
 using namespace std;
 
-void test_bigint(){
-    BigInt bi1 = big_random(30);
-    cout << bi1 << endl;
-}
+// void test_bigint(){
+//     BigInt bi1 = big_random(30);
+//     cout << bi1 << endl;
+// }
 
 void test_polynomials(){
      cout << "==== Generation Polynome ====" << endl;
@@ -46,15 +47,16 @@ void test_polynomials(){
     cout << "P1 * U + P2 * V = " << (p1 * U) + (p2 * V) << endl;
 }
 
-void test_SHE(){
-    cout << "ok" << endl;
-    SHE she{8};
-    she.genKey();
-    cout << she << endl;
-}
+// void test_SHE(){
+//     cout << "ok" << endl;
+//     SHE she{8};
+//     she.genKey();
+//     cout << she << endl;
+// }
 
 int main(void) 
 {
-    test_bigint();
+    test_polynomials();
+    //test_bigint();
     return 0;
 }

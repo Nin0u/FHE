@@ -1,7 +1,9 @@
 #ifndef POLYNOMIAL_H
 #define POLYNOMIAL_H
-
 #include "BigInt.hpp"
+#include <vector>
+
+class BigInt;
 
 class Polynomial{
     private:

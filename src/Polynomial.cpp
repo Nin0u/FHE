@@ -1,9 +1,9 @@
 #include "Polynomial.hpp"
+#include <time.h>
+#include <vector>
 #include <vector>
 #include <iostream>
-#include <time.h>
 #include <tuple>
-
 using namespace std;
 
 /**
