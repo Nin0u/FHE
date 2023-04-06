@@ -1,10 +1,6 @@
 #ifndef POLYNOMIAL_H
 #define POLYNOMIAL_H
 
-#include <vector>
-#include <iostream>
-#include <time.h>
-
 #include "BigInt.hpp"
 
 class Polynomial{

@@ -1,4 +1,5 @@
 #include "SHE.hpp"
+#include <ostream>
 #include <tuple>
 
 using namespace std;
@@ -10,7 +11,7 @@ using namespace std;
 SHE::SHE(int n) : deg{1 << n}, polMod{1 << n}
 {
     polMod[0] = BigInt{1};
-    polMod[(1<< n) + 1] = BigInt{1};  
+    polMod[deg + 1] = BigInt{1};  
 }
 
 /** Générateur de clé */
@@ -29,10 +30,10 @@ int SHE::genKeyCandidate()
     int index_odd_coeff = V.hasOddCoeff();
     if (index_odd_coeff == -1) return 0;
     BigInt g,v1,v2;
-    tie(g, v1, v2) = BigInt::xgcd(V[1],d);
+    tie(g, v1, v2) = xgcd(V[1], d);
     if(g != BigInt{1}) return 0;
     r = (V[0] * v1) % d;
-    BigInt res = (r.powmod(BigInt{deg}, d) + 1) % d;
+    BigInt res = (powmod(r, deg, d) + 1) % d;
     if(res != BigInt{0}) return 0; 
     this->d = d;
     this->r = r;
@@ -47,12 +48,9 @@ void SHE::genKey() { while(!genKeyCandidate()); }
 ostream &operator<<(ostream &out, const SHE& she){
     out << "V = " << she.v << endl;
     out << "W = " << she.w << endl;
-    out << "d = ";
-    she.d.write(out) << endl;
-    out << "r = ";
-    she.r.write(out) << endl;
-    out << "wi = ";
-    she.wi.write(out) << endl;
+    out << "d = " << she.d << endl;
+    out << "r = " << she.r << endl;
+    out << "wi = " << she.wi << endl;
 
     return out;
 }

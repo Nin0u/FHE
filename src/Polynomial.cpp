@@ -1,4 +1,7 @@
 #include "Polynomial.hpp"
+#include <vector>
+#include <iostream>
+#include <time.h>
 #include <tuple>
 
 using namespace std;
@@ -47,16 +50,16 @@ void rd(uint8_t * dst, int n){
  * @param max_coeffs Borne qui définit l'intervalle des coefficients [-max_coeffs, max_coeffs]
  * @param coeffs_nb_bits Le nombre de bits que contiendra chaque coeff. Valeur par défaut à la longueur de max_coeff. 
  */
-Polynomial::Polynomial(int deg, BigInt max_coeffs, int coeffs_nb_bits) : deg{deg}, coeffs{}
+Polynomial::Polynomial(int deg, BigInt max_coeffs, int coeffs_nb_digits) : deg{deg}, coeffs{}
 {
-    int c = coeffs_nb_bits;
-    if(coeffs_nb_bits == -1) c = max_coeffs.bitlength();
+    int c = coeffs_nb_digits;
+    if(coeffs_nb_digits <= 0) c = max_coeffs.to_string().length();
 
     srand(time(NULL));
     coeffs.reserve(deg + 1);
     for(int i = 0; i <= deg; i++){
-        coeffs[i] = (BigInt::rand_bits(rand() % c, rd)) % BigInt{max_coeffs + 1};
-        if (rand() % 2) coeffs[i] *= BigInt{-1};
+        coeffs[i] = (big_random(c)) % BigInt{max_coeffs + 1};
+        if (rand() % 2) coeffs[i] = -coeffs[i];
     }
 }
 
@@ -167,15 +170,12 @@ Polynomial operator/(Polynomial p1, BigInt d) {
 
 /** Affichage d'un polynome */
 ostream &operator<<(std::ostream &out, const Polynomial &p){
-    p.coeffs[0].write(out) << " ";
+    out << p.coeffs[0] << " ";
     if(p.deg == 0) return out;
 
-    out << "+ ";
-    p.coeffs[1].write(out) << "X ";
-    for(int i = 2; i <= p.deg; i++){
-        out << "+ ";
-        p.coeffs[i].write(out) << "X^" << i << " ";
-    }
+    out << "+ " << p.coeffs[1] << "X ";
+    for(int i = 2; i <= p.deg; i++)
+        out << "+ " << p.coeffs[i] << "X^" << i << " ";
 
     return out;
 }
@@ -184,7 +184,7 @@ ostream &operator<<(std::ostream &out, const Polynomial &p){
 BigInt Polynomial::contenu(){
     BigInt pgcd{0};
     for(int i = 0; i <= deg; i++)
-        pgcd = BigInt::gcd(pgcd, coeffs[i]);
+        pgcd = gcd(pgcd, coeffs[i]);
     return pgcd;
 }
 
@@ -225,10 +225,10 @@ tuple<BigInt, Polynomial, Polynomial> Polynomial::EuclidianDiv(Polynomial p){
         e--;
     }
 
-    d = d.pow(e);
+    d = pow(d, e);
     q = q * d;
     r = r * d;
-    d = p[n].pow(m - n + 1);
+    d = pow(p[n], m - n + 1);
 
     return std::tie(d,q,r);
 }
@@ -267,7 +267,7 @@ tuple<Polynomial, Polynomial, Polynomial> Polynomial::Bezout(Polynomial p){
         U2 = us - (q * U2);
         V2 = vs - (q * V2);
 
-        BigInt pgcd = BigInt::gcd(R2.contenu(), BigInt::gcd(U2.contenu(), V2.contenu()));
+        BigInt pgcd = gcd(R2.contenu(), gcd(U2.contenu(), V2.contenu()));
         if(pgcd != 0) {
             R2 = R2 / pgcd;
             U2 = U2 / pgcd;

@@ -1,9 +1,14 @@
 #include <iostream>
 #include <tuple>
-#include "Polynomial.hpp"
+
 #include "SHE.hpp"
 
 using namespace std;
+
+void test_bigint(){
+    BigInt bi1 = big_random(30);
+    cout << bi1 << endl;
+}
 
 void test_polynomials(){
      cout << "==== Generation Polynome ====" << endl;
@@ -18,7 +23,7 @@ void test_polynomials(){
 
     cout << "==== Contenu ====" << endl;
     cout << "c(P1) = ";
-    p1.contenu().write(cout) << endl;
+    cout << p1 << endl;
 
     cout << "==== Operations ====" << endl;
     cout << "P1 + P2 = " <<  p1 + p2 << endl;
@@ -50,6 +55,6 @@ void test_SHE(){
 
 int main(void) 
 {
-    test_SHE();
+    test_bigint();
     return 0;
 }
