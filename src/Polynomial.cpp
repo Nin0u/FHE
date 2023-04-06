@@ -182,6 +182,20 @@ mpz_class Polynomial::contenu(){
     return pgcd;
 }
 
+/** Evalue un polynome en r */
+mpz_class Polynomial::eval(mpz_class r, mpz_class mod){
+    mpz_class sum{0};
+    mpz_class Ri{1};
+    for(int i = 0; i <= deg; i++){
+        sum += coeffs[i] * Ri;
+        sum %= mod;
+        Ri *= r;
+        Ri %= mod;
+    }
+    
+    return sum;
+}
+
 /** Vérifie si c'est le polynome nul */
 int Polynomial::isZero(){
     for(int i = 0; i <= deg; i++)

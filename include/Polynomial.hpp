@@ -31,8 +31,8 @@ class Polynomial{
         friend Polynomial operator/(Polynomial p1, mpz_class d);
         friend std::ostream &operator<<(std::ostream &out, const Polynomial &p);
 
-        // Calcul le contenu
         mpz_class contenu();
+        mpz_class eval(mpz_class r, mpz_class mod);
         int isZero();
         int hasOddCoeff();
 

@@ -66,6 +66,31 @@ int SHE::genKeyCandidate()
 
 void SHE::genKey() { while(!genKeyCandidate()) sleep(2); }
 
+/** Encryption */
+mpz_class SHE::encrypt(char bit){
+    Polynomial b{deg - 1};
+    b[0] = bit & 1;
+
+    // u est un vecteur à valeurs dans [-1 , 1]
+    Polynomial u{deg - 1, 2, state};
+    u = u * mpz_class{2};
+
+    Polynomial a = b + u;
+    mpz_class c = a.eval(r,d);
+    if (c > (d / 2)) c -= d;
+
+    return c;
+}
+
+/** Decryption */
+mpz_class SHE::decrypt(mpz_class text){
+    mpz_class decrypt_coeff = wi;
+    mpz_class m = (decrypt_coeff * text) % d;
+    if (m >= (d / 2)) m -= d;
+    mpz_class b = m % 2;
+    return b & 1;
+}
+
 /** Méthode d'affichage */
 ostream &operator<<(ostream &out, const SHE& she){
     out << "V = " << she.v << endl;

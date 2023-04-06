@@ -72,9 +72,22 @@ void test_polynomials(){
 }
 
 void test_SHE(){
-    SHE she{8};
+    SHE she{4};
     she.genKey();
     cout << she << endl;
+
+    cout << "==== Encrypt / Decrypt un bit ====" << endl;
+    cout << "-- 0 --" << endl; 
+    mpz_class e0 = she.encrypt(0);
+    cout << "e0 = " << e0 << endl;
+    mpz_class d0 = she.decrypt(e0);
+    cout << "d(e0) = " << d0 << endl; 
+
+    cout << "-- 1 --" << endl;
+    mpz_class e1 = she.encrypt(1);
+    cout << "e1 = " << e1 << endl;
+    mpz_class d1 = she.decrypt(e1);
+    cout << "d(e1) = " << d1 << endl; 
 }
 
 int main(void) 

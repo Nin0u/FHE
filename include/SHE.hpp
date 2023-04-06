@@ -25,6 +25,8 @@ class SHE{
         SHE(int deg);
         ~SHE();
         void genKey(); // Générateur de clé
+        mpz_class encrypt(char bit);
+        mpz_class decrypt(mpz_class text);
 
     friend std::ostream &operator<<(std::ostream &out, const SHE& she);
 
