@@ -117,6 +117,37 @@ void test_SHE(){
     s = c1 + c0;
     d = she.decrypt(s);
     cout << "d(c1 + c0) = " << d <<  endl;
+
+
+    cout << "==== Produit de deux chiffrés ====" << endl;
+    cout << "-- 0 * 0 --" << endl;
+    c1 = she.encrypt(0);
+    c0 = she.encrypt(0);
+    s = c1 * c0;
+    d = she.decrypt(s);
+    cout << "d(c1 * c0) = " << d << endl;
+
+    cout << "-- 0 * 1 --" << endl;
+    c1 = she.encrypt(0);
+    c0 = she.encrypt(1);
+    s = c1 * c0;
+    d = she.decrypt(s);
+    cout << "d(c1 * c0) = " << d << endl;
+
+
+    cout << "-- 1 * 0 --" << endl;
+    c1 = she.encrypt(1);
+    c0 = she.encrypt(0);
+    s = c1 * c0;
+    d = she.decrypt(s);
+    cout << "d(c1 * c0) = " << d << endl;
+
+    cout << "-- 1 * 1 --" << endl;
+    c1 = she.encrypt(1);
+    c0 = she.encrypt(1);
+    s = c1 * c0;
+    d = she.decrypt(s);
+    cout << "d(c1 * c0) = " << d << endl;
 }
 
 int main(void) 
