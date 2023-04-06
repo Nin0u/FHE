@@ -88,6 +88,35 @@ void test_SHE(){
     cout << "e1 = " << e1 << endl;
     mpz_class d1 = she.decrypt(e1);
     cout << "d(e1) = " << d1 << endl; 
+
+    cout << "==== Somme de deux chiffrés ====" << endl;
+    cout << "-- 0 + 0 --" << endl;
+    mpz_class c1 = she.encrypt(0);
+    mpz_class c0 = she.encrypt(0);
+    mpz_class s = c1 + c0;
+    mpz_class d = she.decrypt(s);
+    cout << "d(c1 + c0) = " << d <<  endl;
+
+    cout << "-- 0 + 1 --" << endl;
+    c1 = she.encrypt(0);
+    c0 = she.encrypt(1);
+    s = c1 + c0;
+    d = she.decrypt(s);
+    cout << "d(c1 + c0) = " << d <<  endl;
+
+    cout << "-- 1 + 0 --" << endl;
+    c1 = she.encrypt(1);
+    c0 = she.encrypt(0);
+    s = c1 + c0;
+    d = she.decrypt(s);
+    cout << "d(c1 + c0) = " << d <<  endl;
+
+    cout << "-- 1 + 1 --" << endl;
+    c1 = she.encrypt(1);
+    c0 = she.encrypt(1);
+    s = c1 + c0;
+    d = she.decrypt(s);
+    cout << "d(c1 + c0) = " << d <<  endl;
 }
 
 int main(void) 

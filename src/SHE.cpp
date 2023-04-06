@@ -87,6 +87,7 @@ mpz_class SHE::decrypt(mpz_class text){
     mpz_class decrypt_coeff = wi;
     mpz_class m = (decrypt_coeff * text) % d;
     if (m >= (d / 2)) m -= d;
+    if (m <= -(d / 2)) m += d;
     mpz_class b = m % 2;
     return b & 1;
 }
