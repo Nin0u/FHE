@@ -1,6 +1,7 @@
 #include "SHE.hpp"
-#include <ostream>
+#include <iostream>
 #include <tuple>
+#include <unistd.h>
 
 using namespace std;
 
@@ -8,33 +9,54 @@ using namespace std;
  * Constructeur
  * Construit le polynome X^(2^n) + 1
  */
-SHE::SHE(int n) : deg{1 << n}, polMod{1 << n}
+SHE::SHE(int n) : deg{1 << n}, polMod{1 << n}, state{}
 {
-    polMod[0] = BigInt{1};
-    polMod[deg + 1] = BigInt{1};  
+    polMod[0] = mpz_class{1};
+    polMod[deg] =  mpz_class{1}; 
+    gmp_randinit_mt(state);
+    gmp_randseed_ui(state, rand());
+}
+
+/** 
+ * Destructeur 
+ * On doit libérer le générateur de nombre
+ */
+SHE::~SHE(){ 
+    gmp_randclear(state);
 }
 
 /** Générateur de clé */
 int SHE::genKeyCandidate()
-{
-    v = Polynomial{deg - 1, BigInt{100}};
+{   
+    v = Polynomial{deg - 1, 100, state};
     Polynomial G,U,V;
     tie(G,U,V) = polMod.Bezout(v);
-    if (G.getDegree() == 0) return 0;
-    BigInt d  = G[0];
+
+    if (G.getDeg() != 0) return 0;
+
+    mpz_class d = G[0];
     if (d < 0) {
-        d = d * BigInt{-1};
-        V = V * BigInt{-1};
+        mpz_neg(d.get_mpz_t(), d.get_mpz_t());
+        V = V *  mpz_class{-1};
     }
-    if (d % BigInt{2} == BigInt{0}) return 0;
+    
+    if (d % 2 == 0) return 0;
+
     int index_odd_coeff = V.hasOddCoeff();
     if (index_odd_coeff == -1) return 0;
-    BigInt g,v1,v2;
-    tie(g, v1, v2) = xgcd(V[1], d);
-    if(g != BigInt{1}) return 0;
+
+    mpz_class g,v1,v2;
+    mpz_gcdext(g.get_mpz_t(), v1.get_mpz_t() ,v2.get_mpz_t(), V[1].get_mpz_t(), d.get_mpz_t());
+    if(g != 1) return 0;
     r = (V[0] * v1) % d;
-    BigInt res = (powmod(r, deg, d) + 1) % d;
-    if(res != BigInt{0}) return 0; 
+
+    mpz_class res;
+    mpz_powm(res.get_mpz_t() , r.get_mpz_t() , mpz_class{deg}.get_mpz_t() , d.get_mpz_t());
+    mpz_add(res.get_mpz_t(), res.get_mpz_t(), mpz_class{1}.get_mpz_t());
+    mpz_mod(res.get_mpz_t(), res.get_mpz_t(), d.get_mpz_t());
+
+    if(res != 0) return 0; 
+    
     this->d = d;
     this->r = r;
     w = V;
@@ -42,7 +64,7 @@ int SHE::genKeyCandidate()
     return 1;
 }
 
-void SHE::genKey() { while(!genKeyCandidate()); }
+void SHE::genKey() { while(!genKeyCandidate()) sleep(2); }
 
 /** Méthode d'affichage */
 ostream &operator<<(ostream &out, const SHE& she){

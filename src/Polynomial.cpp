@@ -32,7 +32,7 @@ Polynomial::Polynomial(int deg) : deg{deg}, coeffs{}
  * @param fill_values Le vecteur des coefficients voulus.
  */
 Polynomial::Polynomial(int deg, vector<mpz_class> fill_values) : deg{deg}, coeffs{fill_values} {
-    if(fill_values.size() < deg + 1)
+    if((int)fill_values.size() < (deg + 1))
         this->deg = fill_values.size() - 1;
 }
 
@@ -41,15 +41,14 @@ Polynomial::Polynomial(int deg, vector<mpz_class> fill_values) : deg{deg}, coeff
  * Génère aléatoirement un polynome 
  * 
  * @param deg Le degré du polynome
- * @param max_coeffs Borne qui définit l'intervalle des coefficients [-max_coeffs, max_coeffs]
+ * @param max_coeffs Borne qui définit l'intervalle des coefficients ]-max_coeffs, max_coeffs[
  * @param coeffs_nb_bits Le nombre de bits que contiendra chaque coeff. Valeur par défaut à la longueur de max_coeff. 
  */
-Polynomial::Polynomial(int deg, mpz_class max_coeffs, int coeffs_nb_digits) : deg{deg}, coeffs{}
+Polynomial::Polynomial(int deg, mpz_class max_coeffs, gmp_randstate_t &state) : deg{deg}, coeffs{}
 {
-    int c = coeffs_nb_digits;
     coeffs.resize(deg + 1);
     for(int i = 0; i <= deg; i++){
-        coeffs[i] = 1;
+        mpz_urandomm(coeffs[i].get_mpz_t(), state, max_coeffs.get_mpz_t());
         if (rand() % 2) coeffs[i] = -coeffs[i];
     }
 }
@@ -67,8 +66,13 @@ Polynomial::Polynomial(const Polynomial &p) : deg{p.deg}, coeffs{p.deg + 1}
     }
 }
 
+/** Update le degré pour qu'il soit cohérent avec le nombre de coeffs */
+void Polynomial::updateDeg(){
+    deg = coeffs.size()-1;
+}
+
 /** Getter : Le dégré du polynome */
-int Polynomial::getDegree() { return deg; }
+int Polynomial::getDeg() { return deg; }
 
 /** Getter : i-ème coefficient */
 mpz_class &Polynomial::operator[](int i) {
@@ -115,7 +119,6 @@ Polynomial operator+(Polynomial p1, Polynomial p2){
         }
         p3.deg = last_not_null;
     }
-
     return p3;
 }
 
@@ -146,7 +149,7 @@ Polynomial operator*(Polynomial p1, mpz_class b) {
     Polynomial res{p1};
     for (int i = 0; i<= p1.deg; i++)
         res[i] *= b;
-    if (b == 0) res.deg = 0;
+
     return res;
 }
 
@@ -156,7 +159,6 @@ Polynomial operator/(Polynomial p1, mpz_class d) {
     Polynomial p3{p1};
     for(int i = 0; i <= p1.deg; i++)
         p3[i] /= d;
-
     return p3;
 }
 
@@ -174,23 +176,23 @@ ostream &operator<<(std::ostream &out, const Polynomial &p){
 
 /** Calcul le contenu du polynome */
 mpz_class Polynomial::contenu(){
-    mpz_class pgcd{0};
+    mpz_class pgcd = {0};
     for(int i = 0; i <= deg; i++)
-        pgcd = gcd(pgcd, coeffs[i]);
+        mpz_gcd(pgcd.get_mpz_t(), pgcd.get_mpz_t(), coeffs[i].get_mpz_t());
     return pgcd;
 }
 
 /** Vérifie si c'est le polynome nul */
 int Polynomial::isZero(){
     for(int i = 0; i <= deg; i++)
-        if(coeffs[i] != mpz_class{0}) return 0;
+        if(coeffs[i] != 0) return 0;
     return 1;
 }
 
 /** Vérifie si le polynome a un coefficient impair */
 int Polynomial::hasOddCoeff(){
     for(int i = 0; i <= deg; i++)
-        if (coeffs[i] % mpz_class{2} == mpz_class{1}) return i;
+        if (coeffs[i] % 2 == 1 || coeffs[i] % 2 == -1) return i;
     return -1;
 }
 /** 
@@ -233,14 +235,11 @@ tuple<mpz_class, Polynomial, Polynomial> Polynomial::EuclidianDiv(Polynomial p){
 tuple<Polynomial, Polynomial, Polynomial> Polynomial::Bezout(Polynomial p){
     Polynomial R1{*this};
     Polynomial R2{p};
-    vector<mpz_class> zero{};
-    zero.push_back(mpz_class{0});
-    vector<mpz_class> one{mpz_class{1}};
-    one.push_back(1);
-    Polynomial U1{0, one};
-    Polynomial U2{0, zero};
-    Polynomial V1{0, zero};
-    Polynomial V2{0, one};
+
+    Polynomial U1{0, {mpz_class{1}}};
+    Polynomial U2{0, {mpz_class{0}}};
+    Polynomial V1{0, {mpz_class{0}}};
+    Polynomial V2{0, {mpz_class{1}}};
 
     while(! R2.isZero()){
         mpz_class d;

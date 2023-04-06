@@ -7,21 +7,23 @@ class SHE{
     private: 
         int deg;
         Polynomial polMod;
+        gmp_randstate_t state; // Générateur d'entier aléatoire
 
         // Clé publique
         Polynomial v;
         Polynomial w;
 
         // Clé privée
-        BigInt d;
-        BigInt r;
+        mpz_class d;
+        mpz_class r;
 
-        BigInt wi; // Utile pour décrypter
+        mpz_class wi; // Utile pour décrypter
 
         int genKeyCandidate(); // Générateur de candidat
 
     public:
         SHE(int deg);
+        ~SHE();
         void genKey(); // Générateur de clé
 
     friend std::ostream &operator<<(std::ostream &out, const SHE& she);

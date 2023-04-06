@@ -3,7 +3,7 @@ INCL=-Iinclude
 CCO=$(CC) -c $(INCL) -o $@ $< 
 
 OUT_DIR=@mkdir out -p
-OUT=out/Main.o out/Polynomial.o #out/SHE.o
+OUT=out/Main.o out/Polynomial.o out/SHE.o
 
 TARGET=main
 

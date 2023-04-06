@@ -2,3 +2,4 @@ out/
 main
 .vscode/
 __pycache__/
+*.o
