@@ -3,7 +3,7 @@ INCL=-Iinclude
 CCO=$(CC) -c $(INCL) -o $@ $< 
 
 OUT_DIR=@mkdir out -p
-OUT=out/Main.o out/BigInt.o out/Polynomial.o #out/SHE.o
+OUT=out/Main.o out/Polynomial.o #out/SHE.o
 
 TARGET=main
 
@@ -12,7 +12,7 @@ TARGET=main
 all: $(TARGET)
 
 $(TARGET): $(OUT)
-	$(CC) -o $(TARGET) $(OUT) -Iinclude
+	$(CC) -o $(TARGET) $(OUT) -Iinclude -lgmp -lgmpxx
 
 clean:
 	rm -rf out/ $(TARGET)
@@ -26,10 +26,6 @@ out/SHE.o: src/SHE.cpp include/SHE.hpp include/Polynomial.hpp
 	$(OUT_DIR)
 	$(CCO)
 
-out/Polynomial.o: src/Polynomial.cpp include/Polynomial.hpp include/BigInt.hpp
+out/Polynomial.o: src/Polynomial.cpp include/Polynomial.hpp
 	$(OUT_DIR)
 	$(CCO)
-
-out/BigInt.o: src/BigInt.cpp include/BigInt.hpp
-	$(OUT_DIR)
-	$(CCO) 
