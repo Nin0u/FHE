@@ -32,7 +32,8 @@ class Polynomial{
         friend std::ostream &operator<<(std::ostream &out, const Polynomial &p);
 
         mpz_class contenu();
-        mpz_class eval(mpz_class r, mpz_class mod);
+        mpz_class eval(mpz_class r);
+        mpz_class evalmod(mpz_class r, mpz_class mod);
         int isZero();
         int hasOddCoeff();
 

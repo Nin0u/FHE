@@ -9,7 +9,7 @@ using namespace std;
  * Constructeur
  * Construit le polynome X^(2^n) + 1
  */
-SHE::SHE(int n) : deg{1 << n}, polMod{1 << n}, state{}
+SHE::SHE(int n, mpz_class max_v) : deg{1 << n}, polMod{1 << n}, state{}, max_v{max_v}
 {
     polMod[0] = mpz_class{1};
     polMod[deg] =  mpz_class{1}; 
@@ -28,7 +28,7 @@ SHE::~SHE(){
 /** Générateur de clé */
 int SHE::genKeyCandidate()
 {   
-    v = Polynomial{deg - 1, 100, state};
+    v = Polynomial{deg - 1, max_v, state};
     Polynomial G,U,V;
     tie(G,U,V) = polMod.Bezout(v);
 
@@ -76,7 +76,7 @@ mpz_class SHE::encrypt(char bit){
     u = u * mpz_class{2};
 
     Polynomial a = b + u;
-    mpz_class c = a.eval(r,d);
+    mpz_class c = a.evalmod(r,d);
     if (c > (d / 2)) c -= d;
 
     return c;
@@ -90,6 +90,22 @@ mpz_class SHE::decrypt(mpz_class text){
     if (m <= -(d / 2)) m += d;
     mpz_class b = m % 2;
     return b & 1;
+}
+
+bool SHE::testPolynomial(int deg, char b){
+    Polynomial p{deg, 2, state};
+    cout << "P = " << p << endl;
+    mpz_class c = encrypt(b);
+
+    mpz_class r1 = p.evalmod(b, 2) & 1;
+    mpz_class r2 = p.eval(c);
+
+    mpz_class d1 = decrypt(r2);
+
+    cout << "r1 = " << r1 << endl;
+    cout << "d1 = " << d1 << endl;
+
+    return r1 == d1;
 }
 
 /** Méthode d'affichage */

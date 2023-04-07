@@ -8,6 +8,7 @@ class SHE{
         int deg;
         Polynomial polMod;
         gmp_randstate_t state; // Générateur d'entier aléatoire
+        mpz_class max_v;
 
         // Clé publique
         Polynomial v;
@@ -22,11 +23,12 @@ class SHE{
         int genKeyCandidate(); // Générateur de candidat
 
     public:
-        SHE(int deg);
+        SHE(int n, mpz_class max_v);
         ~SHE();
         void genKey(); // Générateur de clé
         mpz_class encrypt(char bit);
         mpz_class decrypt(mpz_class text);
+        bool testPolynomial(int deg, char b);
 
     friend std::ostream &operator<<(std::ostream &out, const SHE& she);
 

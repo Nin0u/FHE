@@ -72,7 +72,7 @@ void test_polynomials(){
 }
 
 void test_SHE(){
-    SHE she{4};
+    SHE she{10, 1 << 30};
     she.genKey();
     cout << she << endl;
 
@@ -148,6 +148,16 @@ void test_SHE(){
     s = c1 * c0;
     d = she.decrypt(s);
     cout << "d(c1 * c0) = " << d << endl;
+
+    cout << "==== Test avec Polynome ====" << endl;
+    for(int i = 0; i < 100; i++) {
+        bool b;
+        if (!(b = she.testPolynomial(2 + i, 0))) break;
+        else cout << boolalpha << b << endl;
+
+        if (!(b = she.testPolynomial(2 + i, 1))) break;
+        else cout << boolalpha << b << endl;
+    }
 }
 
 int main(void) 
