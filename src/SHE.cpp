@@ -21,9 +21,7 @@ SHE::SHE(int n, mpz_class max_v) : deg{1 << n}, polMod{1 << n}, state{}, max_v{m
  * Destructeur 
  * On doit libérer le générateur de nombre
  */
-SHE::~SHE(){ 
-    gmp_randclear(state);
-}
+SHE::~SHE() { gmp_randclear(state); }
 
 /** Générateur de clé */
 int SHE::genKeyCandidate()
@@ -67,6 +65,7 @@ int SHE::genKeyCandidate()
 void SHE::genKey() { while(!genKeyCandidate()) sleep(2); }
 
 /** Encryption */
+// TODO : limiter le nombre de 1 / -1
 mpz_class SHE::encrypt(char bit){
     Polynomial b{deg - 1};
     b[0] = bit & 1;
@@ -77,28 +76,47 @@ mpz_class SHE::encrypt(char bit){
 
     Polynomial a = b + u;
     mpz_class c = a.evalmod(r,d);
-    if (c > (d / 2)) c -= d;
+    if (c >=   d / 2) c -= d;
+    if (c < - d / 2) c += d;
 
     return c;
 }
 
 /** Decryption */
-mpz_class SHE::decrypt(mpz_class text){
+mpz_class SHE::decrypt(mpz_class text) {
     mpz_class decrypt_coeff = wi;
     mpz_class m = (decrypt_coeff * text) % d;
-    if (m >= (d / 2)) m -= d;
-    if (m <= -(d / 2)) m += d;
+    if (m >=  d / 2) m -= d;
+    if (m < - d / 2) m += d;
     mpz_class b = m % 2;
     return b & 1;
 }
 
-bool SHE::testPolynomial(int deg, char b){
+mpz_class SHE::addCipher(mpz_class c1, mpz_class c2) {
+    mpz_class res = (c1 + c2) % d;
+    if (res >=  d / 2) res -= d;
+    if (res < - d / 2) res += d; 
+
+    return res;
+}
+mpz_class SHE::mulCipher(mpz_class c1, mpz_class c2) {
+    mpz_class res = (c1 * c2) % d;
+    if (res >=  d / 2) res -= d;
+    if (res < - d / 2) res += d; 
+
+    return res;
+}
+
+bool SHE::testPolynomial(int deg, char b) {
     Polynomial p{deg, 2, state};
     cout << "P = " << p << endl;
     mpz_class c = encrypt(b);
 
     mpz_class r1 = p.evalmod(b, 2) & 1;
-    mpz_class r2 = p.eval(c);
+    mpz_class r2 = p.eval(c) % d;
+    if (r2 >=  d / 2) r2 -= d;
+    if (r2 < - d / 2) r2 += d; 
+
 
     mpz_class d1 = decrypt(r2);
 

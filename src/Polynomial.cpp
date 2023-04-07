@@ -129,7 +129,7 @@ Polynomial operator-(Polynomial p1, Polynomial p2){
 }
 
 /** Multiplication de deux polynomes */
-// TODO: Un Karatsuba permettrai d'obtimiser ça !
+// TODO: Un Karatsuba permettrait d'obtimiser ça !
 Polynomial operator*(Polynomial p1, Polynomial p2){
     Polynomial p3{p1.deg + p2.deg};
     for(int n = 0; n <= p1.deg + p2.deg; n++) {

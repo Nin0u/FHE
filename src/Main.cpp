@@ -72,7 +72,7 @@ void test_polynomials(){
 }
 
 void test_SHE(){
-    SHE she{10, 1 << 30};
+    SHE she{8, 1 << 30};
     she.genKey();
     cout << she << endl;
 

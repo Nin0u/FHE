@@ -28,6 +28,10 @@ class SHE{
         void genKey(); // Générateur de clé
         mpz_class encrypt(char bit);
         mpz_class decrypt(mpz_class text);
+
+        mpz_class addCipher(mpz_class c1, mpz_class c2);
+        mpz_class mulCipher(mpz_class c1, mpz_class c2);
+
         bool testPolynomial(int deg, char b);
 
     friend std::ostream &operator<<(std::ostream &out, const SHE& she);
