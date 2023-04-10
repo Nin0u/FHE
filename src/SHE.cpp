@@ -101,17 +101,17 @@ mpz_class SHE::encryptM(vector<char> bits)
         b[i] = bits[i] & 1;
     
     Polynomial u{deg - 1};
-    int count = 0;
-    do
-    {
-        int index = rand() % (deg);
-        if(u[index] == 0) {
-            int num = rand() % 2;
-            if(num == 0) num = -1;
-            u[index] = num;
-            count++;
-        }
-    } while(count < MAX_ERROR);
+    // int count = 0;
+    // do
+    // {
+    //     int index = rand() % (deg);
+    //     if(u[index] == 0) {
+    //         int num = rand() % 2;
+    //         if(num == 0) num = -1;
+    //         u[index] = num;
+    //         count++;
+    //     }
+    // } while(count < MAX_ERROR);
     u = u * mpz_class{2};
     Polynomial a = b + u;
     mpz_class c = a.evalmod(r,d);

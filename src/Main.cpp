@@ -162,7 +162,7 @@ void test_SHE(){
 
 void test_SHEM()
 {
-    int deg = 4;
+    int deg = 6;
     SHE she{deg, 100};
     she.genKey();
     cout << she << endl;
@@ -221,6 +221,16 @@ void test_SHEM()
     cout << "bitds = ";
     for(int i = 0; i < 1 << deg; i++)
         cout << bitds[i] << " ";
+    cout << endl;
+
+    c1 = she.encryptM(bit1s);
+    c2 = she.encryptM(bit2s);
+    mpz_class c4 = she.mulCipher(c1, c2);
+    vector<mpz_class> bitMs = she.decryptM(c4);
+    // Le multiplication le fait modulo X^n + 1, donc X^n = -1 = 1 dans F2
+    cout << "bitMs = ";
+    for(int i = 0; i < 1 << deg; i++)
+        cout << bitMs[i] << " ";
     cout << endl;
 }
 
