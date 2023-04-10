@@ -3,6 +3,8 @@
 #include <tuple>
 #include <unistd.h>
 
+#define MAX_ERROR   5
+
 using namespace std;
 
 /**
@@ -71,9 +73,46 @@ mpz_class SHE::encrypt(char bit){
     b[0] = bit & 1;
 
     // u est un vecteur à valeurs dans [-1 , 1]
-    Polynomial u{deg - 1, 2, state};
+    Polynomial u{deg - 1};
+    int count = 0;
+    do
+    {
+        int index = rand() % deg;
+        if(u[index] == 0) {
+            int num = rand() % 2;
+            if(num == 0) num = -1;
+            u[index] = num;
+            count++;
+        }
+    } while(count < MAX_ERROR);
     u = u * mpz_class{2};
+    Polynomial a = b + u;
+    mpz_class c = a.evalmod(r,d);
+    if (c >=   d / 2) c -= d;
+    if (c < - d / 2) c += d;
 
+    return c;
+}
+
+mpz_class SHE::encryptM(vector<char> bits)
+{
+    Polynomial b{deg - 1};
+    for(unsigned int i = 0; i < bits.size(); i++)
+        b[i] = bits[i] & 1;
+    
+    Polynomial u{deg - 1};
+    int count = 0;
+    do
+    {
+        int index = rand() % (deg);
+        if(u[index] == 0) {
+            int num = rand() % 2;
+            if(num == 0) num = -1;
+            u[index] = num;
+            count++;
+        }
+    } while(count < MAX_ERROR);
+    u = u * mpz_class{2};
     Polynomial a = b + u;
     mpz_class c = a.evalmod(r,d);
     if (c >=   d / 2) c -= d;
@@ -90,6 +129,45 @@ mpz_class SHE::decrypt(mpz_class text) {
     if (m < - d / 2) m += d;
     mpz_class b = m % 2;
     return b & 1;
+}
+
+vector<mpz_class> SHE::decryptM(mpz_class text)
+{
+    vector<mpz_class> vec{};
+    vec.resize(deg);
+
+    for(int i = 0; i < deg; i++) {
+        vec[i] = (w[i] * text) % d;
+        if(vec[i] < - d / 2) vec[i] += d;
+        if(vec[i] >=  d / 2) vec[i] -= d;
+    }
+
+    vector<mpz_class> rep{};
+    rep.resize(deg);
+
+    for(int i = 0; i < deg; i++) {
+        rep[i] = 0; 
+        bool minus = false;
+        int k = i;
+        for(int j = 0; j < deg; j++) {
+            //cout << "v" << k << " * c" << j << " ";
+            if(!minus) rep[i] += v[k] * vec[j];
+            else rep[i] -= v[k] * vec[j];
+            k--;
+            if(k < 0) {
+                minus = true;
+                k += deg;
+            }
+        }
+        //cout << endl;
+    }
+
+    vector<mpz_class> final{};
+    final.resize(deg);
+    for(int i = 0; i < deg; i++) {
+        final[i] = (rep[i] & 1);
+    }
+    return final;
 }
 
 mpz_class SHE::addCipher(mpz_class c1, mpz_class c2) {

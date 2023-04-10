@@ -72,7 +72,7 @@ void test_polynomials(){
 }
 
 void test_SHE(){
-    SHE she{8, 1 << 30};
+    SHE she{6, 1 << 30};
     she.genKey();
     cout << she << endl;
 
@@ -160,11 +160,76 @@ void test_SHE(){
     }
 }
 
+void test_SHEM()
+{
+    int deg = 4;
+    SHE she{deg, 100};
+    she.genKey();
+    cout << she << endl;
+
+    cout << "==== Encrypt / Decrypt plusieurs bits ====" << endl;
+    vector<char> bits{};
+    //bits.resize(1 << deg);
+    cout << "bits = ";
+    for(int i = 0; i < 1 << deg; i++)
+        bits.push_back(rand() % 2);
+    for(int i = 0; i < 1 << deg; i++)
+        printf("%d ", bits[i]);
+    cout << endl;
+
+    mpz_class c = she.encryptM(bits);
+    cout << "c = " << c << endl;
+
+    cout << "bits = ";
+    vector<mpz_class> dec = she.decryptM(c);
+    for(int i = 0; i < 1 << deg; i++)
+        cout << dec[i] << " ";
+    cout << endl;
+
+
+    cout << "==== XOR ====" << endl;
+    vector<char> bit1s{};
+    //bits.resize(1 << deg);
+    cout << "bit1s = ";
+    for(int i = 0; i < 1 << deg; i++)
+        bit1s.push_back(rand() % 2);
+    for(int i = 0; i < 1 << deg; i++)
+        printf("%d ", bit1s[i]);
+    cout << endl;
+
+    vector<char> bit2s{};
+    //bits.resize(1 << deg);
+    cout << "bit2s = ";
+    for(int i = 0; i < 1 << deg; i++)
+        bit2s.push_back(rand() % 2);
+    for(int i = 0; i < 1 << deg; i++)
+        printf("%d ", bit2s[i]);
+    cout << endl;
+
+    vector<char> bit3s{};
+    for(int i = 0; i < 1 << deg; i++)
+        bit3s.push_back(bit1s[i] ^ bit2s[i]);
+    cout << "bit3s = ";
+    for(int i = 0; i < 1 << deg; i++)
+        printf("%d ", bit3s[i]);
+    cout << endl;
+
+    mpz_class c1 = she.encryptM(bit1s);
+    mpz_class c2 = she.encryptM(bit2s);
+    mpz_class c3 = she.addCipher(c1, c2);
+    vector<mpz_class> bitds = she.decryptM(c3);
+    cout << "bitds = ";
+    for(int i = 0; i < 1 << deg; i++)
+        cout << bitds[i] << " ";
+    cout << endl;
+}
+
 int main(void) 
 {
     srand(time(NULL));
     // test_mpz();
     // test_polynomials();
-    test_SHE();
+    // test_SHE();
+    test_SHEM();
     return 0;
 }
