@@ -3,7 +3,7 @@
 #include <tuple>
 #include <unistd.h>
 
-#define MAX_ERROR   5
+
 
 using namespace std;
 
@@ -15,6 +15,14 @@ SHE::SHE(int n, mpz_class max_v) : deg{1 << n}, polMod{1 << n}, state{}, max_v{m
 {
     polMod[0] = mpz_class{1};
     polMod[deg] =  mpz_class{1}; 
+
+    for(int i = 0; i < NB_KEY; i++) {
+        for(int j = 0; j < NB_ELEM; j++) {
+            X[i][j] = 0;
+            sk[i][j] = 0;
+        }
+    }
+
     gmp_randinit_mt(state);
     gmp_randseed_ui(state, rand());
 }
@@ -39,7 +47,7 @@ int SHE::genKeyCandidate()
         mpz_neg(d.get_mpz_t(), d.get_mpz_t());
         V = V *  mpz_class{-1};
     }
-    
+
     if (d % 2 == 0) return 0;
 
     int index_odd_coeff = V.hasOddCoeff();
@@ -64,7 +72,47 @@ int SHE::genKeyCandidate()
     return 1;
 }
 
-void SHE::genKey() { while(!genKeyCandidate()) sleep(2); }
+void SHE::splitKey()
+{
+    mpz_class split_sk[NB_KEY];
+    mpz_class sum = 0;
+    for(int i = 0; i < NB_KEY - 1; i++) {
+        mpz_urandomm(split_sk[i].get_mpz_t(), state, d.get_mpz_t());
+        if(split_sk[i] >= d / 2) split_sk[i] -= d / 2;
+        sum += split_sk[i];
+    }
+
+    split_sk[NB_KEY - 1] = (wi - sum) % d;
+    if(split_sk[NB_KEY - 1] >= d / 2) split_sk[NB_KEY - 1] -= d;
+
+    for(int i = 0; i < NB_KEY; i++) {
+        int index = rand() % NB_ELEM;
+        sk[i][index] = 1;
+        for(int j = 0; j < NB_ELEM; j++) {
+            if(j != index) {
+                mpz_urandomm(X[i][j].get_mpz_t(), state, d.get_mpz_t());
+                if(X[i][j] >= d / 2) {
+                    X[i][j] -= d;
+                }
+            } else {
+                X[i][j] = split_sk[i];
+            }
+        }
+    }
+
+    for(int i = 0; i < NB_KEY; i++) {
+        for(int j = 0; j < NB_ELEM; j++) {
+            cout << sk[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+void SHE::genKey() 
+{ 
+    while(!genKeyCandidate()); 
+    splitKey();
+}
 
 /** Encryption */
 // TODO : limiter le nombre de 1 / -1
@@ -101,17 +149,17 @@ mpz_class SHE::encryptM(vector<char> bits)
         b[i] = bits[i] & 1;
     
     Polynomial u{deg - 1};
-    // int count = 0;
-    // do
-    // {
-    //     int index = rand() % (deg);
-    //     if(u[index] == 0) {
-    //         int num = rand() % 2;
-    //         if(num == 0) num = -1;
-    //         u[index] = num;
-    //         count++;
-    //     }
-    // } while(count < MAX_ERROR);
+    int count = 0;
+    do
+    {
+        int index = rand() % (deg);
+        if(u[index] == 0) {
+            int num = rand() % 2;
+            if(num == 0) num = -1;
+            u[index] = num;
+            count++;
+        }
+    } while(count < MAX_ERROR);
     u = u * mpz_class{2};
     Polynomial a = b + u;
     mpz_class c = a.evalmod(r,d);
@@ -202,6 +250,45 @@ bool SHE::testPolynomial(int deg, char b) {
     cout << "d1 = " << d1 << endl;
 
     return r1 == d1;
+}
+
+vector<vector<mpz_class>> SHE::expandCT(mpz_class text) 
+{
+    vector<vector<mpz_class>> res{};
+    res.resize(NB_KEY);
+    for(int i = 0; i < NB_KEY; i++) {
+        res[i].resize(NB_ELEM);
+        for(int j = 0; j < NB_ELEM; j++) {
+            res[i][j] = ((text * X[i][j]) % d);
+            if(res[i][j] >= d / 2) res[i][j] -= d;
+            if(res[i][j] < -d / 2) res[i][j] += d;
+        }
+    }
+    // for(int i = 0; i < NB_KEY; i++) {
+    //     for(int j = 0; j < NB_ELEM; j ++) {
+    //         cout << res[i].at(j) << " ";
+    //     }
+    //     cout << endl;
+    // }
+    //cout << "####################################################" << endl;
+    return res;
+}
+
+mpz_class SHE::decrytpSquash(vector<vector<mpz_class>> text)
+{
+    //cout << "SQUASH" << endl;
+    mpz_class res = 0;
+    for(int i = 0; i < NB_KEY; i++) {
+        for(int j = 0; j < NB_ELEM; j++) {
+            //cout << "c" << i << j << " " << text[i][j] << endl;
+            //cout << "sk" << i << j << " " << sk[i][j] << endl;
+            res = (res + (sk[i][j] * text[i][j])) % d;
+            //cout << res << endl;
+        }
+    }
+    if(res < -d / 2) res += d;
+    if(res >= d / 2) res -= d;
+    return res & 1;
 }
 
 /** Méthode d'affichage */

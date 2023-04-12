@@ -3,6 +3,11 @@
 
 #include "Polynomial.hpp"
 
+#define MAX_ERROR   5
+
+#define NB_KEY  5
+#define NB_ELEM 15
+
 class SHE{
     private: 
         int deg;
@@ -20,20 +25,28 @@ class SHE{
 
         mpz_class wi; // Utile pour décrypter
 
+        mpz_class sk [NB_KEY][NB_ELEM];
+        mpz_class X  [NB_KEY][NB_ELEM];
+
         int genKeyCandidate(); // Générateur de candidat
+        void splitKey();
 
     public:
         SHE(int n, mpz_class max_v);
         virtual ~SHE();
         void genKey(); // Générateur de clé
-        virtual mpz_class encrypt(char bit);
-        virtual mpz_class decrypt(mpz_class text);
+        mpz_class encrypt(char bit);
+        mpz_class decrypt(mpz_class text);
 
-        virtual mpz_class encryptM(std::vector<char> bits);
-        virtual std::vector<mpz_class> decryptM(mpz_class);
+        std::vector<std::vector<mpz_class>> expandCT(mpz_class text);
+        mpz_class decrytpSquash(std::vector<std::vector<mpz_class>> text);
+        mpz_class decrytpRealSquash(std::vector<std::vector<mpz_class>> text);
 
-        virtual mpz_class addCipher(mpz_class c1, mpz_class c2);
-        virtual mpz_class mulCipher(mpz_class c1, mpz_class c2);
+        mpz_class encryptM(std::vector<char> bits);
+        std::vector<mpz_class> decryptM(mpz_class);
+
+        mpz_class addCipher(mpz_class c1, mpz_class c2);
+        mpz_class mulCipher(mpz_class c1, mpz_class c2);
 
         bool testPolynomial(int deg, char b);
 

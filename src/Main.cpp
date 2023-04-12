@@ -72,7 +72,7 @@ void test_polynomials(){
 }
 
 void test_SHE(){
-    SHE she{6, 1 << 30};
+    SHE she{8, 1 << 30};
     she.genKey();
     cout << she << endl;
 
@@ -162,7 +162,7 @@ void test_SHE(){
 
 void test_SHEM()
 {
-    int deg = 6;
+    int deg = 3;
     SHE she{deg, 100};
     she.genKey();
     cout << she << endl;
@@ -234,12 +234,44 @@ void test_SHEM()
     cout << endl;
 }
 
+void test_squash()
+{
+    SHE she{4, 100};
+    she.genKey();
+
+    char b1 = 1;
+    char b2 = 0;
+
+    mpz_class c1 = she.encrypt(b1);
+    mpz_class c2 = she.encrypt(b2);
+
+    mpz_class C1 = she.encrypt(b1);
+    mpz_class C2 = she.encrypt(b2);
+
+
+    mpz_class c3 = she.addCipher(c1, c2);
+    mpz_class c4 = she.mulCipher(c1, c2);
+    mpz_class c5 = she.addCipher(c1, C1);
+    mpz_class c6 = she.addCipher(c2, C2);
+    mpz_class c7 = she.mulCipher(c1, C1);
+    mpz_class c8 = she.mulCipher(c2, C2);
+
+    cout << "1 + 0 = " << she.decrytpSquash(she.expandCT(c3)) << endl;
+    cout << "1 * 0 = " << she.decrytpSquash(she.expandCT(c4)) << endl;
+    cout << "1 + 1 = " << she.decrytpSquash(she.expandCT(c5)) << endl;
+    cout << "0 + 0 = " << she.decrytpSquash(she.expandCT(c6)) << endl;
+    cout << "1 * 1 = " << she.decrytpSquash(she.expandCT(c7)) << endl;
+    cout << "0 * 0 = " << she.decrytpSquash(she.expandCT(c8)) << endl;
+
+}
+
 int main(void) 
 {
     srand(time(NULL));
     // test_mpz();
     // test_polynomials();
     // test_SHE();
-    test_SHEM();
+    // test_SHEM();
+    test_squash();
     return 0;
 }
