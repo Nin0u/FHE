@@ -236,7 +236,7 @@ void test_SHEM()
 
 void test_squash()
 {
-    SHE she{4, 100};
+    SHE she{6, 100};
     she.genKey();
 
     char b1 = 1;
@@ -256,13 +256,90 @@ void test_squash()
     mpz_class c7 = she.mulCipher(c1, C1);
     mpz_class c8 = she.mulCipher(c2, C2);
 
+    cout << "==== Normal Decrypt ====" << endl;
+    cout << "1 + 0 = " << she.decrypt(c3) << endl;
+    cout << "1 * 0 = " << she.decrypt(c4) << endl;
+    cout << "1 + 1 = " << she.decrypt(c5) << endl;
+    cout << "0 + 0 = " << she.decrypt(c6) << endl;
+    cout << "1 * 1 = " << she.decrypt(c7) << endl;
+    cout << "0 * 0 = " << she.decrypt(c8) << endl;
+    cout << endl;
+
+
+    cout << "==== First Squash ====" << endl;
     cout << "1 + 0 = " << she.decrytpSquash(she.expandCT(c3)) << endl;
     cout << "1 * 0 = " << she.decrytpSquash(she.expandCT(c4)) << endl;
     cout << "1 + 1 = " << she.decrytpSquash(she.expandCT(c5)) << endl;
     cout << "0 + 0 = " << she.decrytpSquash(she.expandCT(c6)) << endl;
     cout << "1 * 1 = " << she.decrytpSquash(she.expandCT(c7)) << endl;
     cout << "0 * 0 = " << she.decrytpSquash(she.expandCT(c8)) << endl;
+    cout << endl;
 
+    cout << "==== Real Squash ====" << endl;
+    cout << 0 << " = " << she.decrytpRealSquash(she.expandCT(c2)) << endl;
+    cout << 1 << " = " << she.decrytpRealSquash(she.expandCT(c1)) << endl;
+    cout << "1 + 0 = " << she.decrytpRealSquash(she.expandCT(c3)) << endl;
+    cout << "1 * 0 = " << she.decrytpRealSquash(she.expandCT(c4)) << endl;
+    cout << "1 + 1 = " << she.decrytpRealSquash(she.expandCT(c5)) << endl;
+    cout << "0 + 0 = " << she.decrytpRealSquash(she.expandCT(c6)) << endl;
+    cout << "1 * 1 = " << she.decrytpRealSquash(she.expandCT(c7)) << endl;
+    cout << "0 * 0 = " << she.decrytpRealSquash(she.expandCT(c8)) << endl;
+
+}
+
+void test_GSA()
+{
+    SHE she{2, 100};
+    vector<int> v{};
+    v.push_back(0);
+    v.push_back(1);
+
+    for(int i : v)
+        cout << i << " ";
+    cout << endl;
+
+    int nb = 5;
+    int iter = 0;
+    while(!(v[0] == 0 && v[1] == 0))
+    {
+        v = she.next_set(v, nb);
+
+        for(int i : v)
+            cout << i << " ";
+        cout << endl;
+        iter++;
+    }
+    cout << endl;
+
+    //vector<mpz_class> v1 = {1,0,1,1,1,1,1};
+    // nb = 6;
+    // for(int i = 0; i < nb; i++)
+    // {
+    //     v1.push_back(mpz_class{i + 1});
+    // }
+
+    //mpz_class res = she.polynomial_sym(1 << 1, v1);
+   // cout << res << endl;
+
+    vector<mpz_class> v1 = {0,0,1,1,1,1};    
+    vector<mpz_class> v2 = {1,1,0,0,1,1};    
+    vector<mpz_class> v3 = {0,1,1,1,1,1};    
+    vector<mpz_class> v4 = {1,0,0,1,0,1};    
+    vector<mpz_class> v5 = {0,0,0,0,0,0};    
+    vector<mpz_class> v6 = {0,0,0,0,0,0};
+    
+    vector<vector<mpz_class>> columns{};
+    columns.push_back(v1);
+    columns.push_back(v2);
+    columns.push_back(v3);
+    columns.push_back(v4);
+    columns.push_back(v5);
+    columns.push_back(v6);
+
+    vector<mpz_class> r = she.gradeSchoolAddition(columns);
+    for(mpz_class b : r) 
+        cout << b << " ";
+    cout << endl;
 }
 
 int main(void) 
@@ -272,6 +349,7 @@ int main(void)
     // test_polynomials();
     // test_SHE();
     // test_SHEM();
+    // test_GSA();
     test_squash();
     return 0;
 }

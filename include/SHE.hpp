@@ -31,6 +31,7 @@ class SHE{
         int genKeyCandidate(); // Générateur de candidat
         void splitKey();
 
+
     public:
         SHE(int n, mpz_class max_v);
         virtual ~SHE();
@@ -50,6 +51,10 @@ class SHE{
 
         bool testPolynomial(int deg, char b);
 
+        std::vector<int> next_set(std::vector<int> v, int max);
+        mpz_class polynomial_sym(int n, std::vector<mpz_class> v);
+
+        std::vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> column);
     friend std::ostream &operator<<(std::ostream &out, const SHE& she);
 
 };
