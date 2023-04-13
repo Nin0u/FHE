@@ -149,6 +149,7 @@ vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> column
             //! Peut etre mettre dans le bon intervalle pas sur
             if(res[i] >= d / 2) res[i] -= d;
             if(res[i] < -d / 2) res[i] += d;
+            //if(res[i] < 0) res[i] += d;
         }
 
         int k = 1;
@@ -156,6 +157,7 @@ vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> column
         //Puis grace aux polynome symétrique, on add dans la bonne colonne
         for(unsigned int j = i + 1; j < columns.size(); j++) {
             mpz_class b = polynomial_sym(1 << k, columns[i]);
+            b = b % d;
             if(b >= d / 2) b -= d;
             if(b < -d / 2) b += d;
             columns[j].push_back(b);

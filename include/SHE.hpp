@@ -6,7 +6,7 @@
 #define MAX_ERROR   5
 
 #define NB_KEY  5
-#define NB_ELEM 15
+#define NB_ELEM 100
 
 class SHE{
     private: 
