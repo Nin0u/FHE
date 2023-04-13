@@ -383,6 +383,22 @@ void test_GSA()
     cout << sum << " " << fi << endl;
 }
 
+void test_recrypt()
+{
+    SHE she{6, 100};
+    she.genKey();
+
+    char b1 = 1;
+    char b2 = 0;
+
+    mpz_class c1 = she.encrypt(b1);
+    mpz_class c2 = she.encrypt(b2);
+
+    mpz_class c3 = she.recrypt(c1);
+
+    cout << "1 == " << she.decrypt(c1) << " == " << she.decrypt(c3) << endl;
+}
+
 int main(void) 
 {
     srand(time(NULL));
@@ -391,6 +407,7 @@ int main(void)
     // test_SHE();
     // test_SHEM();
     // test_GSA();
-    test_squash();
+    // test_squash();
+    test_recrypt();
     return 0;
 }

@@ -19,8 +19,9 @@ SHE::SHE(int n, mpz_class max_v) : deg{1 << n}, polMod{1 << n}, state{}, max_v{m
 
     for(int i = 0; i < NB_KEY; i++) {
         for(int j = 0; j < NB_ELEM; j++) {
-            X[i][j] = 0;
+            X [i][j] = 0;
             sk[i][j] = 0;
+            ck[i][j] = 0;
         }
     }
 
@@ -107,6 +108,13 @@ void SHE::splitKey()
         }
         cout << endl;
     }
+
+
+    for(int i = 0; i < NB_KEY; i++) {
+        for(int j = 0; j < NB_ELEM; j++) {
+            ck[i][j] = encrypt(sk[i][j] & 1);
+        }
+    }
 }
 
 void SHE::genKey() 
@@ -116,7 +124,7 @@ void SHE::genKey()
 }
 
 /** Encryption */
-mpz_class SHE::encrypt(char bit){
+mpz_class SHE::encrypt(mpz_class bit){
     Polynomial b{deg - 1};
     b[0] = bit & 1;
 
@@ -291,8 +299,8 @@ mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
         }
     }
 
-    vector<mpz_class> v{};
-    v.resize(NB_KEY);
+    vector<mpz_class> vec{};
+    vec.resize(NB_KEY);
 
     //TODO: log2(NB_KEY) + 1 !
     //Nombre de bit apres la virgule
@@ -301,9 +309,9 @@ mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
     // On calcule les Xor de la partie droite
     // On stocke ça dans v
     for(int i = 0; i < NB_KEY; i++) {
-        v[i] = 0;
+        vec[i] = 0;
         for(int j = 0; j < NB_ELEM; j++) {
-            v[i] ^= (sk[i][j] * ((text[i][j] << precision) / d));
+            vec[i] ^= (sk[i][j] * ((text[i][j] << precision) / d));
         }
     }
 
@@ -316,20 +324,86 @@ mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
     // On prépare les colonnes pour le GSA
     for(int j = 0; j < NB_KEY; j++) {
         for(int i = 0; i < precision + 1; i++) {
-            columns[i][j] = (v[j] >> i) & 1;
+            columns[i][j] = (vec[j] >> i) & 1;
         }
     }
 
     // On applique le GSA
-    v = gradeSchoolAddition(columns);
+    vec = gradeSchoolAddition(columns);
 
     // Pour faire le Round + Mod 2, il suffit de faire le Xor entre le bit avant la virgule et celui apres
-    mpz_class right = v[precision] ^ v[precision - 1];
+    mpz_class right = vec[precision] ^ vec[precision - 1];
 
     // On renvoie le Xor final
     return left ^ right;
 }
 
+mpz_class SHE::recrypt(mpz_class ctext)
+{
+    vector<vector<mpz_class>> text = expandCT(ctext);
+
+    // La partie Gauche le somme facile à calculer, juste une double Xor
+    mpz_class left = 0;
+    for(int i = 0; i < NB_KEY; i++) {
+        for(int j = 0; j < NB_ELEM; j++) {
+            left = addCipher(left, mulCipher(text[i][j], ck[i][j]));
+        }
+    }
+
+    vector<mpz_class> v{};
+    v.resize(NB_KEY);
+
+    //TODO: log2(NB_KEY) + 1 !
+    //Nombre de bit apres la virgule
+    int precision = 4;
+
+    // On calcule les Xor de la partie droite
+    // On stocke ça dans v
+
+    mpz_class matrix[NB_KEY][NB_ELEM][precision + 1];
+
+    for(int i = 0; i < NB_KEY; i++) {
+        for(int j = 0; j < NB_ELEM; j++) {
+            mpz_class t = (text[i][j] << precision) / d;
+            for(int k = 0; k < precision + 1; k++) {
+                matrix[i][j][k] = encrypt((t >> k) & 1);
+                matrix[i][j][k] = mulCipher(matrix[i][j][k], ck[i][j]);
+            } 
+        }
+    }
+
+    //Premier Xor de Droite
+    mpz_class vec [NB_KEY][precision + 1];
+    for(int i = 0; i < NB_KEY; i++) {
+        for(int k = 0; k < precision + 1; k++) {
+            vec[i][k] = 0;
+        }
+        for(int j = 0; j < NB_ELEM; j++) {
+            for(int k = 0; k < precision + 1; k++) {
+                vec[i][k] = addCipher(vec[i][k], matrix[i][j][k]);
+            }
+        }
+    }   
+    
+    // On Créer les colonnes pour le grade school
+    vector<vector<mpz_class>> columns{};
+    columns.resize(precision + 1);
+    for(int i = 0; i < precision + 1; i++) {
+        columns[i].resize(NB_KEY);
+    }
+
+    for(int j = 0; j < NB_KEY; j++) {
+        for(int i = 0; i < precision + 1; i++) {
+            columns[i][j] = vec[j][i];
+        }
+    }    
+
+    vector<mpz_class> rep = gradeSchoolAddition(columns, d);
+    mpz_class right = addCipher(rep[precision], rep[precision - 1]);
+
+    return addCipher(left, right);
+
+}
 
 /** Méthode d'affichage */
 ostream &operator<<(ostream &out, const SHE& she){

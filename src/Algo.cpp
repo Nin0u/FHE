@@ -126,3 +126,41 @@ vector<mpz_class> gradeSchoolAddition(vector<vector<mpz_class>> columns)
     }
     return res;
 }
+
+vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> columns, mpz_class d)
+{
+    //Initialisation
+    vector<mpz_class> res{};
+    res.resize(columns.size());
+
+    for(unsigned int i = 0; i < columns.size(); i++)
+    {
+        res[i] = 0;
+    }
+
+    // Pour chaque colonne
+    for(unsigned int i = 0; i < columns.size(); i++)
+    {
+        res[i] = 0;
+        //On calcule le Xor
+        for(unsigned int j = 0; j < columns[i].size(); j++) {
+            res[i] += columns[i][j];
+            res[i] %= d;
+            //! Peut etre mettre dans le bon intervalle pas sur
+            if(res[i] >= d / 2) res[i] -= d;
+            if(res[i] < -d / 2) res[i] += d;
+        }
+
+        int k = 1;
+
+        //Puis grace aux polynome symétrique, on add dans la bonne colonne
+        for(unsigned int j = i + 1; j < columns.size(); j++) {
+            mpz_class b = polynomial_sym(1 << k, columns[i]);
+            if(b >= d / 2) b -= d;
+            if(b < -d / 2) b += d;
+            columns[j].push_back(b);
+            k++;
+        }
+    }
+    return res;
+}

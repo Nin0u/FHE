@@ -24,10 +24,11 @@ class SHE{
 
         // Clé privée
         mpz_class wi;
-        mpz_class sk [NB_KEY][NB_ELEM];
+        int sk [NB_KEY][NB_ELEM];
         
         // Ajout à la clé publique (en plus de d et r)
         mpz_class X  [NB_KEY][NB_ELEM];
+        mpz_class ck [NB_KEY][NB_ELEM]; // sk chiffré
 
         int genKeyCandidate(); // Générateur de candidat
         void splitKey();
@@ -37,7 +38,7 @@ class SHE{
         SHE(int n, mpz_class max_v);
         virtual ~SHE();
         void genKey(); // Générateur de clé
-        mpz_class encrypt(char bit);
+        mpz_class encrypt(mpz_class bit);
         mpz_class decrypt(mpz_class text);
 
         std::vector<std::vector<mpz_class>> expandCT(mpz_class text);
@@ -46,6 +47,8 @@ class SHE{
 
         mpz_class encryptM(std::vector<char> bits);
         std::vector<mpz_class> decryptM(mpz_class);
+
+        mpz_class recrypt(mpz_class text);
 
         mpz_class addCipher(mpz_class c1, mpz_class c2);
         mpz_class mulCipher(mpz_class c1, mpz_class c2);

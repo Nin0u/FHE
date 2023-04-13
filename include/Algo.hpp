@@ -8,5 +8,6 @@
 std::vector<int> next_set(std::vector<int> v, int max);
 mpz_class polynomial_sym(int n, std::vector<mpz_class> v);
 std::vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> column);
+std::vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> column, mpz_class d);
 
 #endif
