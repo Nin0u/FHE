@@ -1,4 +1,5 @@
 #include "SHE.hpp"
+#include "Algo.hpp"
 #include <iostream>
 #include <tuple>
 #include <unistd.h>
@@ -197,7 +198,6 @@ vector<mpz_class> SHE::decryptM(mpz_class text)
         bool minus = false;
         int k = i;
         for(int j = 0; j < deg; j++) {
-            //cout << "v" << k << " * c" << j << " ";
             if(!minus) rep[i] += v[k] * vec[j];
             else rep[i] -= v[k] * vec[j];
             k--;
@@ -206,7 +206,6 @@ vector<mpz_class> SHE::decryptM(mpz_class text)
                 k += deg;
             }
         }
-        //cout << endl;
     }
 
     vector<mpz_class> final{};
@@ -251,6 +250,7 @@ bool SHE::testPolynomial(int deg, char b) {
     return r1 == d1;
 }
 
+// Fonction renvoyant le ciphertext étendu neccessaire pour le Decrypt Squash
 vector<vector<mpz_class>> SHE::expandCT(mpz_class text) 
 {
     vector<vector<mpz_class>> res{};
@@ -265,9 +265,9 @@ vector<vector<mpz_class>> SHE::expandCT(mpz_class text)
     return res;
 }
 
+// Premiere Version du Decrypt Squash, pour tester si le expandCT et le splitKey fonctionne
 mpz_class SHE::decrytpSquash(vector<vector<mpz_class>> text)
 {
-    //cout << "SQUASH" << endl;
     mpz_class res = 0;
     for(int i = 0; i < NB_KEY; i++) {
         for(int j = 0; j < NB_ELEM; j++) {
@@ -279,9 +279,11 @@ mpz_class SHE::decrytpSquash(vector<vector<mpz_class>> text)
     return res & 1;
 }
 
-
+// Le vrai decrypt Squash
 mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
 {
+
+    // La partie Gauche le somme facile à calculer, juste une double Xor
     mpz_class left = 0;
     for(int i = 0; i < NB_KEY; i++) {
         for(int j = 0; j < NB_ELEM; j++) {
@@ -289,14 +291,15 @@ mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
         }
     }
 
-   // cout << "FIN LEFT" << endl;
-
     vector<mpz_class> v{};
     v.resize(NB_KEY);
 
     //TODO: log2(NB_KEY) + 1 !
+    //Nombre de bit apres la virgule
     int precision = 4;
 
+    // On calcule les Xor de la partie droite
+    // On stocke ça dans v
     for(int i = 0; i < NB_KEY; i++) {
         v[i] = 0;
         for(int j = 0; j < NB_ELEM; j++) {
@@ -304,162 +307,27 @@ mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
         }
     }
 
-   // cout << "FIN V" << endl;
-
     vector<vector<mpz_class>> columns{};
     columns.resize(precision + 1);
     for(int i = 0; i < precision + 1; i++) {
         columns[i].resize(NB_KEY);
     }
-    /**
-     * t1 = 0 . 0 1 1 1
-     * t2 = 1 . 0 1 0 1
-     * sauf que c est reverse
-    */
 
+    // On prépare les colonnes pour le GSA
     for(int j = 0; j < NB_KEY; j++) {
         for(int i = 0; i < precision + 1; i++) {
             columns[i][j] = (v[j] >> i) & 1;
         }
     }
 
-  //  cout << "FIN BUILD BIT COLUMN" << endl;
-
+    // On applique le GSA
     v = gradeSchoolAddition(columns);
 
-   // cout << "FIN GRADE SCHOOL" << endl;
-
+    // Pour faire le Round + Mod 2, il suffit de faire le Xor entre le bit avant la virgule et celui apres
     mpz_class right = v[precision] ^ v[precision - 1];
 
-   // cout << "RETURN" << endl;
+    // On renvoie le Xor final
     return left ^ right;
-}
-
-
-//TODO: Mettre ces 3 fonctions en dessous dans un autre fichiers surement ! 
-std::vector<int> SHE::next_set(std::vector<int> v, int max)
-{
-
-    int i = (int)(v.size() - 1);
-    int prev = 0;
-
-    bool flag = true;
-    while(flag)
-    {
-
-        flag = false;
-        for(; i >= 0; i--)
-        {
-            v[i]++;
-            prev = v[i];
-            if(v[i] > max)
-                v[i] = 0;
-            else break;
-        }
-
-
-        i++;
-        
-        for(; i <= (int)v.size(); i++)
-        {
-            v[i] = ++prev;
-            if(v[i] > max)
-            {
-                v[i] = 0;
-                i--;
-                flag = true;
-                break;
-            }
-        }
-
-        if(i < 0) break;
-    }
-    return v;
-}
-
-
-// n = taille des tuples
-// v = ensemble d'éléments à prendre
-// sum(xi1, xi2, xi3, ...., xin) pour tout tuples !
-mpz_class SHE::polynomial_sym(int n, vector<mpz_class> v)
-{
-    //Si j'ai moins d'elements que la taille des tuples
-    if((unsigned) n > v.size()) {
-        // mpz_class res = 1;
-        // for(mpz_class &elt : v)
-        //     res *= elt;
-        // return res;
-        return 0;
-    }
-
-
-    //On initialise le tableau
-    vector<int> index{};
-    unsigned int nb = v.size();
-    for(int i = 0; i < n; i++)
-        index.push_back(i);
-
-    mpz_class res = 0;
-
-    while(1)
-    {
-        // for(int i : index) 
-        //     cout << i << " ";
-        // cout << endl;
-
-        mpz_class prod = 1;
-        for(int i : index)
-        {
-            prod *= v[i];
-        }
-        res += prod;
-        index = next_set(index, nb);
-
-        bool stop = true;
-        for(int i : index) {
-            if(i != 0) {
-                stop = false;
-                break;
-            }
-        }
-        if(stop) break;
-    }
-
-    return res;
-}
-
-vector<mpz_class> SHE::gradeSchoolAddition(vector<vector<mpz_class>> columns)
-{
-    vector<mpz_class> res{};
-    res.resize(columns.size());
-
-    for(unsigned int i = 0; i < columns.size(); i++)
-    {
-        res[i] = 0;
-    }
-
-    for(unsigned int i = 0; i < columns.size(); i++)
-    {
-        res[i] = 0;
-        for(unsigned int j = 0; j < columns[i].size(); j++)
-            res[i] ^= columns[i][j];
-        int k = 1;
-        for(unsigned int j = i + 1; j < columns.size(); j++) {
-            mpz_class b = polynomial_sym(1 << k, columns[i]) & 1;
-            columns[j].push_back(b);
-            k++;
-        }
-
-        // for(unsigned int ii = 0; ii < columns.size(); ii++) {
-        //     for(unsigned int jj = 0; jj < columns[ii].size(); jj++) {
-        //         cout << columns[ii][jj] << " ";
-        //     }
-        //     cout << endl;
-        // }
-
-    }
-
-    return res;
 }
 
 

@@ -15,17 +15,18 @@ class SHE{
         gmp_randstate_t state; // Générateur d'entier aléatoire
         mpz_class max_v;
 
-        // Clé publique
         Polynomial v;
         Polynomial w;
 
-        // Clé privée
+        // Clé publique
         mpz_class d;
         mpz_class r;
 
-        mpz_class wi; // Utile pour décrypter
-
+        // Clé privée
+        mpz_class wi;
         mpz_class sk [NB_KEY][NB_ELEM];
+        
+        // Ajout à la clé publique (en plus de d et r)
         mpz_class X  [NB_KEY][NB_ELEM];
 
         int genKeyCandidate(); // Générateur de candidat
@@ -51,10 +52,6 @@ class SHE{
 
         bool testPolynomial(int deg, char b);
 
-        std::vector<int> next_set(std::vector<int> v, int max);
-        mpz_class polynomial_sym(int n, std::vector<mpz_class> v);
-
-        std::vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> column);
     friend std::ostream &operator<<(std::ostream &out, const SHE& she);
 
 };

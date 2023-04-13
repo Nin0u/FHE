@@ -3,6 +3,7 @@
 
 #include "Polynomial.hpp"
 #include "SHE.hpp"
+#include "Algo.hpp"
 
 #include <gmpxx.h>
 
@@ -290,8 +291,6 @@ void test_squash()
 void test_GSA()
 {
     cout << "==== Next Set ====" << endl;
-
-    SHE she{2, 100};
     vector<int> v{};
     v.push_back(0);
     v.push_back(1);
@@ -304,7 +303,7 @@ void test_GSA()
     int iter = 0;
     while(!(v[0] == 0 && v[1] == 0))
     {
-        v = she.next_set(v, nb);
+        v = next_set(v, nb);
 
         for(int i : v)
             cout << i << " ";
@@ -330,7 +329,7 @@ void test_GSA()
     columns.push_back(v5);
     columns.push_back(v6);
 
-    vector<mpz_class> r = she.gradeSchoolAddition(columns);
+    vector<mpz_class> r = gradeSchoolAddition(columns);
     for(mpz_class b : r) 
         cout << b << " ";
     cout << endl;
@@ -370,7 +369,7 @@ void test_GSA()
 
     cout << "-------------------------------" << endl;
 
-    vector<mpz_class> repon = she.gradeSchoolAddition(col);
+    vector<mpz_class> repon = gradeSchoolAddition(col);
     for(int i = precision - 1; i >= 0; i--) {
         cout << repon[i] << " ";
     }
