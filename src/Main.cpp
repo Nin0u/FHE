@@ -289,6 +289,8 @@ void test_squash()
 
 void test_GSA()
 {
+    cout << "==== Next Set ====" << endl;
+
     SHE she{2, 100};
     vector<int> v{};
     v.push_back(0);
@@ -311,16 +313,8 @@ void test_GSA()
     }
     cout << endl;
 
-    //vector<mpz_class> v1 = {1,0,1,1,1,1,1};
-    // nb = 6;
-    // for(int i = 0; i < nb; i++)
-    // {
-    //     v1.push_back(mpz_class{i + 1});
-    // }
 
-    //mpz_class res = she.polynomial_sym(1 << 1, v1);
-   // cout << res << endl;
-
+    cout << "==== GSA 1 ====" << endl;
     vector<mpz_class> v1 = {0,0,1,1,1,1};    
     vector<mpz_class> v2 = {1,1,0,0,1,1};    
     vector<mpz_class> v3 = {0,1,1,1,1,1};    
@@ -340,6 +334,54 @@ void test_GSA()
     for(mpz_class b : r) 
         cout << b << " ";
     cout << endl;
+
+    cout << "==== GSA 2 ====" << endl;
+
+    nb = 5;
+    vector<mpz_class> vec{};
+    int sum = 0;
+    for(int i = 0; i < nb; i++) {
+        int val = rand() % 256;
+        //if((val & 1) == 0) val += 1;
+        cout << val << " ";
+        sum += val;
+        vec.push_back(val);
+    }
+    cout << endl;
+
+    vector<vector<mpz_class>> col{};
+    int precision = 16;
+    col.resize(precision);
+    for(int i = 0; i < precision; i++)
+        col[i].resize(nb);
+
+    for(int j = 0; j < nb; j++) {
+        for(int i = 0; i < precision; i++) {
+            col[i][j] = (vec[j] >> i) & 1;
+        }
+    }
+
+    for(int j = 0; j < nb; j++) {
+        for(int i = precision - 1; i >= 0; i--) {
+            cout << col[i][j] << " ";
+        }
+        cout << endl;
+    }
+
+    cout << "-------------------------------" << endl;
+
+    vector<mpz_class> repon = she.gradeSchoolAddition(col);
+    for(int i = precision - 1; i >= 0; i--) {
+        cout << repon[i] << " ";
+    }
+    cout << endl;
+
+    mpz_class fi = 0;
+    for(int i = 0; i < precision; i++) {
+        fi += repon[i] << i;
+    }
+
+    cout << sum << " " << fi << endl;
 }
 
 int main(void) 

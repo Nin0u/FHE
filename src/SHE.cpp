@@ -295,7 +295,7 @@ mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
     v.resize(NB_KEY);
 
     //TODO: log2(NB_KEY) + 1 !
-    int precision = 10;
+    int precision = 4;
 
     for(int i = 0; i < NB_KEY; i++) {
         v[i] = 0;
@@ -384,11 +384,12 @@ std::vector<int> SHE::next_set(std::vector<int> v, int max)
 mpz_class SHE::polynomial_sym(int n, vector<mpz_class> v)
 {
     //Si j'ai moins d'elements que la taille des tuples
-    if((unsigned) n >= v.size()) {
-        mpz_class res = 1;
-        for(mpz_class &elt : v)
-            res *= elt;
-        return res;
+    if((unsigned) n > v.size()) {
+        // mpz_class res = 1;
+        // for(mpz_class &elt : v)
+        //     res *= elt;
+        // return res;
+        return 0;
     }
 
 
@@ -448,6 +449,14 @@ vector<mpz_class> SHE::gradeSchoolAddition(vector<vector<mpz_class>> columns)
             columns[j].push_back(b);
             k++;
         }
+
+        // for(unsigned int ii = 0; ii < columns.size(); ii++) {
+        //     for(unsigned int jj = 0; jj < columns[ii].size(); jj++) {
+        //         cout << columns[ii][jj] << " ";
+        //     }
+        //     cout << endl;
+        // }
+
     }
 
     return res;
