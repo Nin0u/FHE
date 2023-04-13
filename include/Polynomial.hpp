@@ -8,8 +8,6 @@ class Polynomial{
         int deg; // Le degré du polynome.
         std::vector<mpz_class> coeffs; // List des coefficients.
 
-        void updateDeg(); // Fait en sorte que le deg soit cohérent avec le nombre de coeffs
-
     public:
         // Constructeurs
         Polynomial();

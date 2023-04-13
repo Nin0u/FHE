@@ -67,11 +67,6 @@ Polynomial::Polynomial(const Polynomial &p) : deg{p.deg}, coeffs{p.deg + 1}
     }
 }
 
-/** Update le degré pour qu'il soit cohérent avec le nombre de coeffs */
-void Polynomial::updateDeg(){
-    deg = coeffs.size()-1;
-}
-
 /** Getter : Le dégré du polynome */
 int Polynomial::getDeg() { return deg; }
 
