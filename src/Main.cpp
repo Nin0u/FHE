@@ -386,8 +386,8 @@ void test_GSA()
 void test_recrypt()
 {
     mpz_class max = 1;
-    max <<= 256;
-    SHE she{7, max};
+    max <<= 380;
+    SHE she{6, max};
     she.genKey();
 
     char b1 = 1;
@@ -436,13 +436,20 @@ void test_recrypt()
 
     mpz_class cb = she.encrypt(b1);
     
-    int max_iter = 100;
+    int max_iter = 5000;
+    bool success = true;
     for(int i = 0; i < max_iter; i++) {
         cb = she.mulCipher(cb, cb);
         cb = she.recrypt(cb);
-        cout << she.decrypt(cb) << " " << she.decrytpRealSquash2(she.expandCT(cb)) << endl;
+        //cout << she.decrypt(cb) << " " << she.decrytpRealSquash2(she.expandCT(cb)) << endl;
+        mpz_class dec = she.decrypt(cb);
+        if(dec != 1) {
+            cout << "ERROR " << i << endl;
+            success = false;
+        }
     }
 
+    if(success) cout << "Success !" << endl;
 }
 
 int main(void) 
