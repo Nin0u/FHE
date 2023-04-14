@@ -385,18 +385,64 @@ void test_GSA()
 
 void test_recrypt()
 {
-    SHE she{6, 100};
+    mpz_class max = 1;
+    max <<= 256;
+    SHE she{7, max};
     she.genKey();
 
     char b1 = 1;
     char b2 = 0;
 
+    cout << "Clear / Real / Real2 / Normal / Recrypt" << endl;
+    for(int i = 0; i < 10; i++)
+    {
+        mpz_class c1 = she.encrypt(b2);
+
+        mpz_class c3 = she.recrypt(c1);
+
+        cout << "0 == " << she.decrytpRealSquash(she.expandCT(c1)) << " == " 
+        << she.decrytpRealSquash2(she.expandCT(c1)) 
+        << " == " << she.decrypt(c1) << " == " << she.decrytpRealSquash(she.expandCT(c3)) << endl;
+    }
+    cout << endl;
+    for(int i = 0; i < 10; i++)
+    {
+        mpz_class c1 = she.encrypt(b1);
+
+        mpz_class c3 = she.recrypt(c1);
+
+        cout << "1 == " << she.decrytpRealSquash(she.expandCT(c1)) << " == " 
+        << she.decrytpRealSquash2(she.expandCT(c1)) 
+        << " == " << she.decrypt(c1) << " == " << she.decrytpRealSquash(she.expandCT(c3)) << endl;
+    }
+
+    cout << endl;
+
     mpz_class c1 = she.encrypt(b1);
     mpz_class c2 = she.encrypt(b2);
 
-    mpz_class c3 = she.recrypt(c1);
+    mpz_class c3 = she.recrypt(she.addCipher(c1, c1));
+    mpz_class c4 = she.recrypt(she.addCipher(c2, c2));
+    mpz_class c5 = she.recrypt(she.addCipher(c1, c2));
+    mpz_class c6 = she.recrypt(she.mulCipher(c1, c2));
+    mpz_class c7 = she.recrypt(she.mulCipher(c1, c1));
+    mpz_class c8 = she.recrypt(she.mulCipher(c2, c2));
+    cout << "1 + 1 = " << she.decrytpRealSquash2(she.expandCT(c3)) << endl;
+    cout << "0 + 0 = " << she.decrytpRealSquash2(she.expandCT(c4)) << endl;
+    cout << "1 + 0 = " << she.decrytpRealSquash2(she.expandCT(c5)) << endl;
+    cout << "1 * 0 = " << she.decrytpRealSquash2(she.expandCT(c6)) << endl;
+    cout << "1 * 1 = " << she.decrytpRealSquash2(she.expandCT(c7)) << endl;
+    cout << "0 * 0 = " << she.decrytpRealSquash2(she.expandCT(c8)) << endl;
 
-    cout << "1 == " << she.decrypt(c1) << " == " << she.decrypt(c3) << endl;
+    mpz_class cb = she.encrypt(b1);
+    
+    int max_iter = 100;
+    for(int i = 0; i < max_iter; i++) {
+        cb = she.mulCipher(cb, cb);
+        cb = she.recrypt(cb);
+        cout << she.decrypt(cb) << " " << she.decrytpRealSquash2(she.expandCT(cb)) << endl;
+    }
+
 }
 
 int main(void) 

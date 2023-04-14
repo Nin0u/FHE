@@ -287,7 +287,7 @@ mpz_class SHE::decrytpSquash(vector<vector<mpz_class>> text)
     return res & 1;
 }
 
-// Le vrai Squash
+// Le vrai decrypt Squash
 mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
 {
 
@@ -299,15 +299,61 @@ mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
         }
     }
 
-    vector<mpz_class> v{};
-    v.resize(NB_KEY);
+    vector<mpz_class> vec{};
+    vec.resize(NB_KEY);
 
     //TODO: log2(NB_KEY) + 1 !
     //Nombre de bit apres la virgule
-    int precision = 4;
+    int precision = 7;
 
     // On calcule les Xor de la partie droite
     // On stocke ça dans v
+    for(int i = 0; i < NB_KEY; i++) {
+        vec[i] = 0;
+        for(int j = 0; j < NB_ELEM; j++) {
+            vec[i] ^= (sk[i][j] * ((text[i][j] << precision) / d));
+        }
+    }
+
+    vector<vector<mpz_class>> columns{};
+    columns.resize(precision + 1);
+    for(int i = 0; i < precision + 1; i++) {
+        columns[i].resize(NB_KEY);
+    }
+
+    // On prépare les colonnes pour le GSA
+    for(int j = 0; j < NB_KEY; j++) {
+        for(int i = 0; i < precision + 1; i++) {
+            columns[i][j] = (vec[j] >> i) & 1;
+        }
+    }
+
+    // On applique le GSA
+    vec = gradeSchoolAddition(columns);
+
+    // Pour faire le Round + Mod 2, il suffit de faire le Xor entre le bit avant la virgule et celui apres
+    mpz_class right = vec[precision] ^ vec[precision - 1];
+
+    // On renvoie le Xor final
+    return left ^ right;
+}
+
+
+mpz_class SHE::decrytpRealSquash2(vector<vector<mpz_class>> text)
+{
+
+    // La partie Gauche le somme facile à calculer, juste une double Xor
+    mpz_class left = 0;
+    for(int i = 0; i < NB_KEY; i++) {
+        for(int j = 0; j < NB_ELEM; j++) {
+            left ^= (text[i][j] & 1) & (sk[i][j]);
+        }
+    }
+
+    //TODO: log2(NB_KEY) + 1 !
+    //Nombre de bit apres la virgule
+    int precision = 7;
+
 
     mpz_class matrix[NB_KEY][NB_ELEM][precision + 1];
 
@@ -355,6 +401,7 @@ mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
 }
 
 
+
 mpz_class SHE::recrypt(mpz_class ctext)
 {
     vector<vector<mpz_class>> text = expandCT(ctext);
@@ -363,21 +410,21 @@ mpz_class SHE::recrypt(mpz_class ctext)
     mpz_class left = 0;
     for(int i = 0; i < NB_KEY; i++) {
         for(int j = 0; j < NB_ELEM; j++) {
-            left = addCipher(left, mulCipher(text[i][j], ck[i][j]));
+            left = addCipher(left, mulCipher(text[i][j] & 1, ck[i][j]));
         }
     }
 
     //TODO: log2(NB_KEY) + 1 !
     //Nombre de bit apres la virgule
-    int precision = 10;
+    int precision = 5;
 
+    // On calcule les Xor de la partie droite
     mpz_class matrix[NB_KEY][NB_ELEM][precision + 1];
 
     for(int i = 0; i < NB_KEY; i++) {
         for(int j = 0; j < NB_ELEM; j++) {
             mpz_class t = (text[i][j] << precision) / d;
             for(int k = 0; k < precision + 1; k++) {
-                //matrix[i][j][k] = encrypt((t >> k) & 1);
                 matrix[i][j][k] = mulCipher((t >> k) & 1, ck[i][j]);
             } 
         }

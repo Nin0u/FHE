@@ -44,6 +44,7 @@ class SHE{
         std::vector<std::vector<mpz_class>> expandCT(mpz_class text);
         mpz_class decrytpSquash(std::vector<std::vector<mpz_class>> text);
         mpz_class decrytpRealSquash(std::vector<std::vector<mpz_class>> text);
+        mpz_class decrytpRealSquash2(std::vector<std::vector<mpz_class>> text);
 
         mpz_class encryptM(std::vector<char> bits);
         std::vector<mpz_class> decryptM(mpz_class);

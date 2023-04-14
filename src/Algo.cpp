@@ -146,7 +146,6 @@ vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> column
         for(unsigned int j = 0; j < columns[i].size(); j++) {
             res[i] += columns[i][j];
             res[i] %= d;
-            //! Peut etre mettre dans le bon intervalle pas sur
             if(res[i] >= d / 2) res[i] -= d;
             if(res[i] < -d / 2) res[i] += d;
             //if(res[i] < 0) res[i] += d;
