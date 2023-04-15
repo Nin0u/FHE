@@ -450,6 +450,7 @@ void test_recrypt()
     cout << "1 * 0 = " << she.decrytpRealSquash2(she.expandCT(c6)) << endl;
     cout << "1 * 1 = " << she.decrytpRealSquash2(she.expandCT(c7)) << endl;
     cout << "0 * 0 = " << she.decrytpRealSquash2(she.expandCT(c8)) << endl;
+    cout << endl;
 
     mpz_class cb = she.encrypt(b1);
     char res = 1;
