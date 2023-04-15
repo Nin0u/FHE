@@ -241,7 +241,7 @@ mpz_class SHE::mulCipher(mpz_class c1, mpz_class c2) {
 
 bool SHE::testPolynomial(int deg, char b) {
     Polynomial p{deg, 2, state};
-    cout << "P = " << p << endl;
+    //cout << "P = " << p << endl;
     mpz_class c = encrypt(b);
 
     mpz_class r1 = p.evalmod(b, 2) & 1;
@@ -252,8 +252,8 @@ bool SHE::testPolynomial(int deg, char b) {
 
     mpz_class d1 = decrypt(r2);
 
-    cout << "r1 = " << r1 << endl;
-    cout << "d1 = " << d1 << endl;
+    //cout << "r1 = " << r1 << endl;
+    //cout << "d1 = " << d1 << endl;
 
     return r1 == d1;
 }

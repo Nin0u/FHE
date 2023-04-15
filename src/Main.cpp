@@ -12,7 +12,7 @@ using namespace std;
 
 void print_bar(float progress)
 {
-    int barWidth = 50;
+    int barWidth = 37;
     cout << "[";
     int pos = barWidth * progress;
     for (int i = 0; i < barWidth; ++i) {
@@ -452,10 +452,32 @@ void test_recrypt()
     cout << "0 * 0 = " << she.decrytpRealSquash2(she.expandCT(c8)) << endl;
     cout << endl;
 
+    cout << "Calul max degré : ";
+    cout.flush();
+    int degmax = 0;
+    for(int i = 0; i < 1000; i++) {
+        bool b;
+        if (!(b = she.testPolynomial(2 + i, 0))) break;
+        //else cout << boolalpha << b << endl;
+
+        if (!(b = she.testPolynomial(2 + i, 1))) break;
+        //else cout << boolalpha << b << endl;
+        degmax++;
+        if(i % 10 == 0) {
+            cout << ". ";
+            cout.flush();
+        }
+    }
+
+    cout << endl;
+    cout << "Degré Max : " << degmax << endl;
+    cout << endl;
+    
     mpz_class cb = she.encrypt(b1);
     char res = 1;
     
-    int max_iter = 500;
+    int max_iter = 1000;
+    cout << "==== Test Eval Polynome Degré " << max_iter << " ====" << endl;
     bool success = true;
     for(int i = 0; i < max_iter; i++) {
         int r = rand() % 2;
