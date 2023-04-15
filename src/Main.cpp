@@ -6,8 +6,25 @@
 #include "Algo.hpp"
 
 #include <gmpxx.h>
+#include <unistd.h>
 
 using namespace std;
+
+void print_bar(float progress)
+{
+    int barWidth = 50;
+    cout << "[";
+    int pos = barWidth * progress;
+    for (int i = 0; i < barWidth; ++i) {
+        if (i < pos) cout << "=";
+        else if (i == pos) cout << ">";
+        else cout << " ";
+    }
+
+    cout << "] " << int(progress * 100.0) << " %\r";
+    cout.flush();
+}
+
 
 void test_mpz(){
     mpz_class a{-45};
@@ -435,22 +452,43 @@ void test_recrypt()
     cout << "0 * 0 = " << she.decrytpRealSquash2(she.expandCT(c8)) << endl;
 
     mpz_class cb = she.encrypt(b1);
+    char res = 1;
     
-    int max_iter = 5000;
+    int max_iter = 500;
     bool success = true;
     for(int i = 0; i < max_iter; i++) {
-        cb = she.mulCipher(cb, cb);
+        int r = rand() % 2;
+        char bit = rand() % 2;
+        mpz_class c = she.encrypt(bit);
+        if(r == 0) {
+            res ^= bit;
+            cb = she.addCipher(cb, c);
+        } else {
+            res = res & bit;
+            cb = she.mulCipher(cb, c);
+        }
+        
         cb = she.recrypt(cb);
-        //cout << she.decrypt(cb) << " " << she.decrytpRealSquash2(she.expandCT(cb)) << endl;
+
         mpz_class dec = she.decrypt(cb);
-        if(dec != 1) {
+        if(dec != res) {
+            cout << endl;
             cout << "ERROR " << i << endl;
             success = false;
+            break;
+        } else {
+            print_bar(i * 1.0 / max_iter);
         }
     }
 
-    if(success) cout << "Success !" << endl;
+    if(success) {
+        print_bar(1.0);
+        cout << endl;
+        cout << "Success !" << endl;
+    }
 }
+
+
 
 int main(void) 
 {
