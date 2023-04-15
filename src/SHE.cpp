@@ -35,6 +35,11 @@ SHE::SHE(int n, mpz_class max_v) : deg{1 << n}, polMod{1 << n}, state{}, max_v{m
  */
 SHE::~SHE() { gmp_randclear(state); }
 
+mpz_class SHE::get_d()
+{
+    return d;
+}
+
 /** Générateur de clé */
 int SHE::genKeyCandidate()
 {   

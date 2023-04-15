@@ -38,6 +38,9 @@ class SHE{
         SHE(int n, mpz_class max_v);
         virtual ~SHE();
         void genKey(); // Générateur de clé
+
+        mpz_class get_d();
+
         mpz_class encrypt(mpz_class bit);
         mpz_class decrypt(mpz_class text);
 

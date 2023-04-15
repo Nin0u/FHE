@@ -1,4 +1,5 @@
 #include "Algo.hpp"
+#include <iostream>
 
 using namespace std;
 
@@ -12,7 +13,6 @@ std::vector<int> next_set(std::vector<int> v, int max)
     bool flag = true;
     while(flag)
     {
-
         flag = false;
         for(; i >= 0; i--)
         {
@@ -25,8 +25,7 @@ std::vector<int> next_set(std::vector<int> v, int max)
 
 
         i++;
-        
-        for(; i <= (int)v.size(); i++)
+        for(; i < (int)v.size(); i++)
         {
             v[i] = ++prev;
             if(v[i] > max)
@@ -66,18 +65,19 @@ mpz_class polynomial_sym(int n, vector<mpz_class> v)
     // Pour chaque tuple, je calcule le produit que j'ajoute à la somme
     while(1)
     {
+
         //Calcul du produit
         mpz_class prod = 1;
         for(int i : index)
         {
-            prod *= v[i];
+            prod = prod * v[i];
         }
 
         //Ajout à la somme
         res += prod;
 
         //Cherche le prochain tuple et si = (0, ... , 0) on s'arrete
-        index = next_set(index, nb);
+        index = next_set(index, nb - 1);
 
         bool stop = true;
         for(int i : index) {
@@ -119,6 +119,7 @@ vector<mpz_class> gradeSchoolAddition(vector<vector<mpz_class>> columns)
 
         //Puis grace aux polynome symétrique, on add dans la bonne colonne
         for(unsigned int j = i + 1; j < columns.size(); j++) {
+            //cout << i << " " << j << " " << k << endl;
             mpz_class b = polynomial_sym(1 << k, columns[i]) & 1;
             columns[j].push_back(b);
             k++;

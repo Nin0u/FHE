@@ -353,7 +353,7 @@ void test_GSA()
 
     cout << "==== GSA 2 ====" << endl;
 
-    nb = 5;
+    nb = 2;
     vector<mpz_class> vec{};
     int sum = 0;
     for(int i = 0; i < nb; i++) {
@@ -512,6 +512,56 @@ void test_recrypt()
 }
 
 
+mpz_class perform_sum(int a, int b, int max_bits, SHE &she)
+{
+    vector<int> bits_a{};
+    vector<int> bits_b{};
+
+    bits_a.resize(max_bits);
+    bits_b.resize(max_bits);
+
+    for(int i = 0; i < max_bits; i++) {
+        bits_a[i] = (a >> i) & 1;
+        bits_b[i] = (b >> i) & 1;
+    }
+
+    vector<vector<mpz_class>> columns{};
+    columns.resize(max_bits);
+    for(int i = 0; i < max_bits; i++) {
+        columns[i].resize(2);
+    }
+
+    for(int j = 0; j < max_bits; j++) {
+        columns[j][0] = she.encrypt(bits_a[j]);
+        columns[j][1] = she.encrypt(bits_b[j]);
+    }
+
+    vector<mpz_class> res = gradeSchoolAddition(columns, she.get_d());
+
+    mpz_class resint = 0;
+
+    for(int i = 0; i < max_bits; i++) {
+        resint += she.decrypt(res[i]) << i;
+    }
+
+    return resint;
+}
+
+void test_sum_int() {
+    mpz_class max = 1;
+    max <<= 380;
+    SHE she{6, max};
+    she.genKey();
+
+    int a = rand() % 256;
+    int b = rand() % 256;
+
+    cout << a << " " << b << endl;
+
+    mpz_class sum = perform_sum(a, b, 16, she);
+    cout << (a + b) << " == " << sum << endl;
+}
+
 
 int main(void) 
 {
@@ -523,5 +573,7 @@ int main(void)
     // test_GSA();
     // test_squash();
     test_recrypt();
+    cout << endl;
+    test_sum_int();
     return 0;
 }
