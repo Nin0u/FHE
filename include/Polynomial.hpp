@@ -38,6 +38,10 @@ class Polynomial{
         std::tuple<mpz_class, Polynomial, Polynomial> EuclidianDiv(Polynomial Q);
         std::tuple<Polynomial, Polynomial, Polynomial> Bezout(Polynomial Q);
 
+        void reduce(mpz_class mod);
+        std::tuple<Polynomial, Polynomial> EuclidianDiv(Polynomial Q, mpz_class mod);
+        std::tuple<Polynomial, Polynomial, Polynomial> Bezout(Polynomial Q, mpz_class mod);
+
 };
 
 #endif

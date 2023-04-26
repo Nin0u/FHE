@@ -291,3 +291,72 @@ tuple<Polynomial, Polynomial, Polynomial> Polynomial::Bezout(Polynomial p){
 
     return std::tie(R1, U1, V1);
 }
+
+void Polynomial::reduce(mpz_class mod)
+{   
+    int max_deg = 0;
+    for(int i = 0; i <= deg; i++) {
+        coeffs[i] %= mod;
+        if(coeffs[i] != 0) max_deg = i;
+    }
+    deg = max_deg;
+}
+
+tuple<Polynomial, Polynomial> Polynomial::EuclidianDiv(Polynomial p, mpz_class mod)
+{
+    if (p.isZero()) throw domain_error("Division by Zero");
+    Polynomial q{0};
+    Polynomial r{*this};
+    int d = p.deg;
+    mpz_class c = p[d];
+    
+    mpz_class a, b, g;
+    mpz_gcdext(g.get_mpz_t(), a.get_mpz_t() ,b.get_mpz_t(), c.get_mpz_t(), mod.get_mpz_t());
+
+    //a est l'inverse de c modulo mod
+
+    while(!r.isZero() && r.deg >= d){
+        Polynomial s{r.deg - d};
+        s[r.deg - d] = (r[r.deg] * a) % mod;
+        q = q + s;
+        s = p * s;
+        r = r - s;
+        r.reduce(mod);
+    }
+
+    return std::tie(q, r);
+}
+
+tuple<Polynomial, Polynomial, Polynomial> Polynomial::Bezout(Polynomial p, mpz_class mod)
+{
+    Polynomial R1{*this};
+    Polynomial R2{p};
+
+    Polynomial U1{0, {mpz_class{1}}};
+    Polynomial U2{0, {mpz_class{0}}};
+    Polynomial V1{0, {mpz_class{0}}};
+    Polynomial V2{0, {mpz_class{1}}};
+
+    while(! R2.isZero()){
+        Polynomial q,r;
+        tie(q,r) = R1.EuclidianDiv(R2, mod);
+        
+        Polynomial rs = R1;
+        Polynomial us = U1;
+        Polynomial vs = V1;
+
+        R1 = R2;
+        U1 = U2;
+        V1 = V2;
+
+        R2 = rs - (q * R2);
+        U2 = us - (q * U2);
+        V2 = vs - (q * V2);
+
+        R2.reduce(mod);
+        U2.reduce(mod);
+        V2.reduce(mod);
+    }
+
+    return std::tie(R1, U1, V1);
+}

@@ -1,5 +1,6 @@
 #include "Algo.hpp"
 #include <iostream>
+#include <thread>
 
 using namespace std;
 
@@ -166,3 +167,88 @@ vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> column
     }
     return res;
 }
+
+mpz_class CRT(mpz_class a1, mpz_class p1, mpz_class a2, mpz_class p2)
+{
+    mpz_class g, u1, u2;
+    mpz_gcdext(g.get_mpz_t(), u1.get_mpz_t() ,u2.get_mpz_t(), p1.get_mpz_t(), p2.get_mpz_t());
+    
+    mpz_class new_mod = p1 * p2;
+
+    return (a2 * u1 * p1 + a1 * u2 * p2) % new_mod;
+}
+
+void CRT_polynomial(Polynomial v, Polynomial X, mpz_class *primes, int i, int deep, Polynomial *rep, mpz_class *r)
+{
+    mpz_class prime = primes[i];
+    //cout << i << " : " << prime << endl;
+    v.reduce(prime);
+    Polynomial G,U,V;
+    tie(G,U,V) = X.Bezout(v, prime);
+    // V est le polynome recherché mais il est mod prime
+
+    if(deep == 0)
+    {
+        mpz_class d = G[0];
+        *rep = V;
+        *r = d;
+        return;
+    }    
+
+
+    Polynomial w1, w2;
+    mpz_class d1, d2;
+    thread t1{CRT_polynomial, v, X, primes, i + 1, deep - 1, &w1, &d1};
+    thread t2{CRT_polynomial, v, X, primes, i + (1 << deep), deep - 1, &w2, &d2};
+
+    t1.join();
+    t2.join();
+
+    mpz_class p1 = primes[i + 1];
+    mpz_class p2 = primes[i + (1 << deep)];
+
+    mpz_class d = CRT(d1, p1, d2, p2);
+    if(d < 0) d += (p1 * p2);
+    if(d1 < 0) d1 += p1;
+    if(d2 < 0) d2 += p2;
+    if(d % p1 != d1) {
+        cout << "bizarre 1" << endl;
+    }
+    if(d % p2 != d2) {
+        cout << "bizzare 2" << endl;
+    }
+
+    Polynomial w{X.getDeg() - 1};
+    for(int j = 0; j <= X.getDeg() - 1; j++) {
+        w[j] = CRT(w1[j], p1, w2[j], p2);
+    }
+
+    *rep = w;
+    *r = d;
+    return;
+}
+
+
+tuple<Polynomial, mpz_class> invert_Polynomial(Polynomial v, Polynomial X)
+{
+    int deep = 5;
+
+    mpz_class primes[(1 << (deep + 1)) - 1];
+    mpz_class a = {1};
+    a <<= 70;
+
+    mpz_class prime;
+    for(int i = 0; i < (1 << (deep + 1)) - 1; i++) {
+        mpz_nextprime (prime.get_mpz_t(), a.get_mpz_t());
+        a = prime;
+        primes[i] = a;
+    }
+
+    Polynomial w{X.getDeg() - 1};
+    mpz_class d;
+
+    CRT_polynomial(v, X, primes, 0, deep, &w, &d);
+
+    return tie(w, d);
+}
+

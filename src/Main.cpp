@@ -7,6 +7,7 @@
 
 #include <gmpxx.h>
 #include <unistd.h>
+#include <thread>
 
 using namespace std;
 
@@ -562,6 +563,96 @@ void test_sum_int() {
     cout << (a + b) << " == " << sum << endl;
 }
 
+void test_mod() {
+    gmp_randstate_t state;
+    gmp_randinit_mt(state);
+    gmp_randseed_ui(state, rand());
+    Polynomial p1{7, 100, state};
+    Polynomial p2{5, 100, state};
+    gmp_randclear(state);
+
+    cout << "P1 = " << p1 << endl;
+    cout << "P2 = " << p2 << endl;
+
+    Polynomial q, r;
+    mpz_class mod = 5;
+    p1.reduce(mod);
+    p2.reduce(mod);
+
+    cout << endl;
+    cout << "P1 = " << p1 << endl;
+    cout << "P2 = " << p2 << endl;
+
+    tie(q,r) = p1.EuclidianDiv(p2, mod);
+    cout << "Q = " << q << endl;
+    cout << "R = " << r << endl;
+    Polynomial p3 = p2 * q + r;
+    p3.reduce(mod);
+    cout << "P3 = " << p3 << endl;
+
+
+    Polynomial p4, p5, p6;
+    tie(p4, p5, p6) = p1.Bezout(p2, mod);
+
+    cout << "R = " << p4 << endl;
+    Polynomial p7 = p5 * p1 + p6 * p2;
+    p7.reduce(mod);
+
+    cout << "P1 * U + P2 * V = " << p7 << endl;
+}
+
+void getint(int i, int *rep) {
+    if(i == 0) {
+        *rep = 1;
+        return;
+    }
+    else {
+        int a = *rep;
+        int b = *rep;
+        thread first(getint, i - 1, &a);
+        thread second(getint, i - 1, &b);
+
+        first.join();
+        second.join();
+        
+        *rep = a + b;
+        return; 
+    }
+} 
+
+void test_thread()
+{
+    int rep = 0;
+    getint(14, &rep);
+    cout << rep << endl;
+}
+
+void test_invert_pol()
+{
+    gmp_randstate_t state;
+    gmp_randinit_mt(state);
+    gmp_randseed_ui(state, rand());
+    Polynomial p1{7, 100, state};
+    gmp_randclear(state);
+
+    Polynomial p2{8};
+    p2[8] = 1;
+    p2[0] = 0;
+
+    Polynomial w;
+    mpz_class d;
+
+    tie(w, d) = invert_Polynomial(p1, p2);
+
+    cout << w << endl;
+    cout << d << endl;
+
+    Polynomial q, r;
+    Polynomial p3 = p1 * w;
+    mpz_class a;
+    tie(a, q, r) = p3.EuclidianDiv(p2);
+    cout << r << endl;
+}
 
 int main(void) 
 {
@@ -572,8 +663,13 @@ int main(void)
     // test_SHEM();
     // test_GSA();
     // test_squash();
-    test_recrypt();
-    cout << endl;
-    test_sum_int();
+    // test_recrypt();
+    // cout << endl;
+    // test_sum_int();
+
+    // test_mod();
+    // test_thread();
+
+    test_invert_pol();
     return 0;
 }
