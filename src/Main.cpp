@@ -675,6 +675,8 @@ void test_invert_pol()
 
     cout << "w = " << w << endl;
     cout << "d = " << d << endl;
+    cout << "d1 = " << d % mpz_class{1073741831} << endl;
+    cout << "d2 = " << d % mpz_class{1073741833} << endl;
 
     Polynomial q, r;
     Polynomial p3 = p1 * w;
@@ -686,6 +688,8 @@ void test_invert_pol()
     Polynomial G, U, V;
     tie(G, U, V) = p2.Bezout(p1);
     cout << "**d = " << G << endl;
+    cout << "**d1 = " << G[0] % mpz_class{1073741831} << endl;
+    cout << "**d2 = " << G[0] % mpz_class{1073741833} << endl;
     cout << "**w = " << V << endl;
 
     gmp_randclear(state);
