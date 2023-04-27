@@ -632,26 +632,63 @@ void test_invert_pol()
     gmp_randstate_t state;
     gmp_randinit_mt(state);
     gmp_randseed_ui(state, rand());
+    
+    cout << "==== TEST CRT ====" << endl;
+
+
+    mpz_class big = 1;
+    big <<= 50;
+    cout << big << endl;
+    mpz_class prime1, prime2;
+    mpz_nextprime (prime1.get_mpz_t(), big.get_mpz_t());
+    mpz_nextprime (prime2.get_mpz_t(), prime1.get_mpz_t());
+    cout << prime1 << " " << prime2 << endl;
+
+    mpz_class a, b;
+    big << 50;
+    mpz_urandomm(a.get_mpz_t(), state, big.get_mpz_t());
+    mpz_urandomm(b.get_mpz_t(), state, big.get_mpz_t());
+
+    cout << a << " " << b << endl;
+    
+    a %= prime1;
+    b %= prime2;
+
+    mpz_class c = CRT(a, prime1, b, prime2);
+    if(c < 0) c += prime1 * prime2;
+    if(a < 0) a += prime1;
+    if(b < 0) b += prime2;
+    cout << a << " == " << c % prime1 << " " << b << " == " << c % prime2 << endl; 
+
+
+    cout << "==== TEST POLYNOME ====" << endl;
     Polynomial p1{7, 100, state};
-    gmp_randclear(state);
 
     Polynomial p2{8};
     p2[8] = 1;
-    p2[0] = 0;
+    p2[0] = 1;
 
     Polynomial w;
     mpz_class d;
 
     tie(w, d) = invert_Polynomial(p1, p2);
 
-    cout << w << endl;
-    cout << d << endl;
+    cout << "w = " << w << endl;
+    cout << "d = " << d << endl;
 
     Polynomial q, r;
     Polynomial p3 = p1 * w;
-    mpz_class a;
-    tie(a, q, r) = p3.EuclidianDiv(p2);
+    mpz_class aa;
+    tie(aa, q, r) = p3.EuclidianDiv(p2);
     cout << r << endl;
+
+
+    Polynomial G, U, V;
+    tie(G, U, V) = p2.Bezout(p1);
+    cout << "**d = " << G << endl;
+    cout << "**w = " << V << endl;
+
+    gmp_randclear(state);
 }
 
 int main(void) 

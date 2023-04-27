@@ -178,64 +178,66 @@ mpz_class CRT(mpz_class a1, mpz_class p1, mpz_class a2, mpz_class p2)
     return (a2 * u1 * p1 + a1 * u2 * p2) % new_mod;
 }
 
-void CRT_polynomial(Polynomial v, Polynomial X, mpz_class *primes, int i, int deep, Polynomial *rep, mpz_class *r)
+void CRT_polynomial(Polynomial v, Polynomial X, mpz_class *primes, int i, int deep, Polynomial *rep, mpz_class *r, mpz_class *mod)
 {
-    mpz_class prime = primes[i];
-    //cout << i << " : " << prime << endl;
-    v.reduce(prime);
-    Polynomial G,U,V;
-    tie(G,U,V) = X.Bezout(v, prime);
-    // V est le polynome recherché mais il est mod prime
-
     if(deep == 0)
     {
+        mpz_class prime = primes[i];
+        cout << i << " : " << prime << endl;
+        v.reduce(prime);
+        Polynomial G,U,V;
+        tie(G,U,V) = X.Bezout(v, prime);
+        // V est le polynome recherché mais il est mod prime
+        Polynomial a = v * V + U * X;
+        a.reduce(prime);
+
+        cout << "Bezout : " << a << " == " << G << endl;
+
         mpz_class d = G[0];
         *rep = V;
         *r = d;
+        *mod = prime;
         return;
     }    
 
 
     Polynomial w1, w2;
     mpz_class d1, d2;
-    thread t1{CRT_polynomial, v, X, primes, i + 1, deep - 1, &w1, &d1};
-    thread t2{CRT_polynomial, v, X, primes, i + (1 << deep), deep - 1, &w2, &d2};
+    mpz_class mod1, mod2;
+    thread t1{CRT_polynomial, v, X, primes, i + 1, deep - 1, &w1, &d1, &mod1};
+    thread t2{CRT_polynomial, v, X, primes, i + (1 << deep), deep - 1, &w2, &d2, &mod2};
 
     t1.join();
     t2.join();
 
-    mpz_class p1 = primes[i + 1];
-    mpz_class p2 = primes[i + (1 << deep)];
+    //cout << "# " << deep << " " << i << " " << mod1 << " " << mod2 << endl;
 
-    mpz_class d = CRT(d1, p1, d2, p2);
-    if(d < 0) d += (p1 * p2);
-    if(d1 < 0) d1 += p1;
-    if(d2 < 0) d2 += p2;
-    if(d % p1 != d1) {
-        cout << "bizarre 1" << endl;
-    }
-    if(d % p2 != d2) {
-        cout << "bizzare 2" << endl;
-    }
+    mpz_class d = CRT(d1, mod1, d2, mod2);
+   // if(d < 0) d += (mod1 * mod2);
+   // if(d1 < 0) d1 += mod1;
+   // if(d2 < 0) d2 += mod2;
+
+   // cout << "# " << deep << " " << i << " " << d % mod1 << " == " << d1 << " " << d % mod2 << " == " << d2 << endl;
 
     Polynomial w{X.getDeg() - 1};
     for(int j = 0; j <= X.getDeg() - 1; j++) {
-        w[j] = CRT(w1[j], p1, w2[j], p2);
+        w[j] = CRT(w1[j], mod1, w2[j], mod2);
     }
 
     *rep = w;
     *r = d;
+    *mod = mod1 * mod2;
     return;
 }
 
 
 tuple<Polynomial, mpz_class> invert_Polynomial(Polynomial v, Polynomial X)
 {
-    int deep = 5;
+    int deep = 1;
 
     mpz_class primes[(1 << (deep + 1)) - 1];
     mpz_class a = {1};
-    a <<= 70;
+    a <<= 30;
 
     mpz_class prime;
     for(int i = 0; i < (1 << (deep + 1)) - 1; i++) {
@@ -246,8 +248,9 @@ tuple<Polynomial, mpz_class> invert_Polynomial(Polynomial v, Polynomial X)
 
     Polynomial w{X.getDeg() - 1};
     mpz_class d;
+    mpz_class mod;
 
-    CRT_polynomial(v, X, primes, 0, deep, &w, &d);
+    CRT_polynomial(v, X, primes, 0, deep, &w, &d, &mod);
 
     return tie(w, d);
 }
