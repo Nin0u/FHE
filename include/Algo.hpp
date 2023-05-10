@@ -18,4 +18,16 @@ void CRT_polynomial(Polynomial v, Polynomial X, mpz_class *primes, int i, int de
 
 std::tuple<Polynomial, mpz_class> invert_Polynomial(Polynomial v, Polynomial X);
 
+mpz_class getDet(const std::vector<std::vector<mpz_class>> matrix);
+
+std::vector<std::vector<mpz_class>> getTranspose(const std::vector<std::vector<mpz_class>> matrix);
+
+std::vector<std::vector<mpz_class>> getCofactor(const std::vector<std::vector<mpz_class>> matrix);
+
+std::vector<std::vector<mpz_class>> getInverse(const std::vector<std::vector<mpz_class>> matrix);
+
+mpz_class getNorm(const std::vector<std::vector<mpz_class>> basis);
+
+mpz_class getRadius(const std::vector<std::vector<mpz_class>> basis);
+
 #endif

@@ -667,6 +667,9 @@ void test_invert_pol()
     Polynomial p2{8};
     p2[8] = 1;
     p2[0] = 1;
+    
+    cout << "p1 : " << p1 << endl;
+    cout << "p2 : " << p2 << endl;
 
     Polynomial w;
     mpz_class d;
