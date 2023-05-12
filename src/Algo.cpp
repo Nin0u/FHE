@@ -93,6 +93,49 @@ mpz_class polynomial_sym(int n, vector<mpz_class> v)
     return res;
 }
 
+Cipher polynomial_sym(int n, vector<Cipher> v)
+{
+    //Si j'ai moins d'elements que la taille des tuples
+    if((unsigned) n > v.size())
+        return Cipher{v[0].getSHE(), 0};
+
+    //On initialise le tableau
+    vector<int> index{};
+    unsigned int nb = v.size();
+    for(int i = 0; i < n; i++)
+        index.push_back(i);
+
+    Cipher res = {v[0].getSHE(), 0};
+
+    // Pour chaque tuple, je calcule le produit que j'ajoute à la somme
+    while(1)
+    {
+
+        //Calcul du produit
+        Cipher prod{v[0].getSHE(), 1};
+        for(int i : index)
+            prod = prod * v[i];
+
+        //Ajout à la somme
+        res = res + prod;
+
+        //Cherche le prochain tuple et si = (0, ... , 0) on s'arrete
+        index = next_set(index, nb - 1);
+
+        bool stop = true;
+        for(int i : index) {
+            if(i != 0) {
+                stop = false;
+                break;
+            }
+        }
+        if(stop) break;
+    }
+
+    return res;
+}
+
+
 // Algorithme su Grade School Addition utilisant les polynomes symétrique
 // Version bits !
 // Principe :
@@ -161,6 +204,34 @@ vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> column
             b = b % d;
             if(b >= d / 2) b -= d;
             if(b < -d / 2) b += d;
+            columns[j].push_back(b);
+            k++;
+        }
+    }
+    return res;
+}
+
+vector<Cipher> gradeSchoolAddition(vector<vector<Cipher>> columns)
+{
+    //Initialisation
+    vector<Cipher> res{};
+    res.resize(columns.size());
+
+    for(unsigned int i = 0; i < columns.size(); i++)
+        res[i] = {columns[i][0].getSHE(), 0};
+
+    // Pour chaque colonne
+    for(unsigned int i = 0; i < columns.size(); i++)
+    {
+        //On calcule le Xor
+        for(unsigned int j = 0; j < columns[i].size(); j++)
+            res[i] = res[i] + columns[i][j];
+        int k = 1;
+
+        //Puis grace aux polynome symétrique, on add dans la bonne colonne
+        for(unsigned int j = i + 1; j < columns.size(); j++) {
+            //cout << i << " " << j << " " << k << endl;
+            Cipher b = polynomial_sym(1 << k, columns[i]);
             columns[j].push_back(b);
             k++;
         }

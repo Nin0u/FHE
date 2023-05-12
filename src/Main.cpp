@@ -4,6 +4,7 @@
 #include "Polynomial.hpp"
 #include "SHE.hpp"
 #include "Algo.hpp"
+#include "Cipher.hpp"
 
 #include <gmpxx.h>
 #include <unistd.h>
@@ -97,22 +98,22 @@ void test_SHE(){
 
     cout << "==== Encrypt / Decrypt un bit ====" << endl;
     cout << "-- 0 --" << endl; 
-    mpz_class e0 = she.encrypt(0);
+    Cipher e0 = she.encrypt(0);
     cout << "e0 = " << e0 << endl;
     mpz_class d0 = she.decrypt(e0);
     cout << "d(e0) = " << d0 << endl; 
 
     cout << "-- 1 --" << endl;
-    mpz_class e1 = she.encrypt(1);
+    Cipher e1 = she.encrypt(1);
     cout << "e1 = " << e1 << endl;
     mpz_class d1 = she.decrypt(e1);
     cout << "d(e1) = " << d1 << endl; 
 
     cout << "==== Somme de deux chiffrés ====" << endl;
     cout << "-- 0 + 0 --" << endl;
-    mpz_class c1 = she.encrypt(0);
-    mpz_class c0 = she.encrypt(0);
-    mpz_class s = c1 + c0;
+    Cipher c1 = she.encrypt(0);
+    Cipher c0 = she.encrypt(0);
+    Cipher s = c1 + c0;
     mpz_class d = she.decrypt(s);
     cout << "d(c1 + c0) = " << d <<  endl;
 
@@ -196,7 +197,7 @@ void test_SHEM()
         printf("%d ", bits[i]);
     cout << endl;
 
-    mpz_class c = she.encryptM(bits);
+    Cipher c = she.encryptM(bits);
     cout << "c = " << c << endl;
 
     cout << "bits = ";
@@ -233,9 +234,9 @@ void test_SHEM()
         printf("%d ", bit3s[i]);
     cout << endl;
 
-    mpz_class c1 = she.encryptM(bit1s);
-    mpz_class c2 = she.encryptM(bit2s);
-    mpz_class c3 = she.addCipher(c1, c2);
+    Cipher c1 = she.encryptM(bit1s);
+    Cipher c2 = she.encryptM(bit2s);
+    Cipher c3 = c1 + c2;
     vector<mpz_class> bitds = she.decryptM(c3);
     cout << "bitds = ";
     for(int i = 0; i < 1 << deg; i++)
@@ -244,7 +245,7 @@ void test_SHEM()
 
     c1 = she.encryptM(bit1s);
     c2 = she.encryptM(bit2s);
-    mpz_class c4 = she.mulCipher(c1, c2);
+    Cipher c4 = c1 * c2;
     vector<mpz_class> bitMs = she.decryptM(c4);
     // Le multiplication le fait modulo X^n + 1, donc X^n = -1 = 1 dans F2
     cout << "bitMs = ";
@@ -261,19 +262,19 @@ void test_squash()
     char b1 = 1;
     char b2 = 0;
 
-    mpz_class c1 = she.encrypt(b1);
-    mpz_class c2 = she.encrypt(b2);
+    Cipher c1 = she.encrypt(b1);
+    Cipher c2 = she.encrypt(b2);
 
-    mpz_class C1 = she.encrypt(b1);
-    mpz_class C2 = she.encrypt(b2);
+    Cipher C1 = she.encrypt(b1);
+    Cipher C2 = she.encrypt(b2);
 
 
-    mpz_class c3 = she.addCipher(c1, c2);
-    mpz_class c4 = she.mulCipher(c1, c2);
-    mpz_class c5 = she.addCipher(c1, C1);
-    mpz_class c6 = she.addCipher(c2, C2);
-    mpz_class c7 = she.mulCipher(c1, C1);
-    mpz_class c8 = she.mulCipher(c2, C2);
+    Cipher c3 = c1 + c2;
+    Cipher c4 = c1 * c2;
+    Cipher c5 = c1 + C1;
+    Cipher c6 = c2 + C2;
+    Cipher c7 = c1 * C1;
+    Cipher c8 = c2 * C2;
 
     cout << "==== Normal Decrypt ====" << endl;
     cout << "1 + 0 = " << she.decrypt(c3) << endl;
@@ -286,23 +287,23 @@ void test_squash()
 
 
     cout << "==== First Squash ====" << endl;
-    cout << "1 + 0 = " << she.decrytpSquash(she.expandCT(c3)) << endl;
-    cout << "1 * 0 = " << she.decrytpSquash(she.expandCT(c4)) << endl;
-    cout << "1 + 1 = " << she.decrytpSquash(she.expandCT(c5)) << endl;
-    cout << "0 + 0 = " << she.decrytpSquash(she.expandCT(c6)) << endl;
-    cout << "1 * 1 = " << she.decrytpSquash(she.expandCT(c7)) << endl;
-    cout << "0 * 0 = " << she.decrytpSquash(she.expandCT(c8)) << endl;
+    cout << "1 + 0 = " << she.decryptSquash(she.expandCT(c3)) << endl;
+    cout << "1 * 0 = " << she.decryptSquash(she.expandCT(c4)) << endl;
+    cout << "1 + 1 = " << she.decryptSquash(she.expandCT(c5)) << endl;
+    cout << "0 + 0 = " << she.decryptSquash(she.expandCT(c6)) << endl;
+    cout << "1 * 1 = " << she.decryptSquash(she.expandCT(c7)) << endl;
+    cout << "0 * 0 = " << she.decryptSquash(she.expandCT(c8)) << endl;
     cout << endl;
 
     cout << "==== Real Squash ====" << endl;
-    cout << 0 << " = " << she.decrytpRealSquash(she.expandCT(c2)) << endl;
-    cout << 1 << " = " << she.decrytpRealSquash(she.expandCT(c1)) << endl;
-    cout << "1 + 0 = " << she.decrytpRealSquash(she.expandCT(c3)) << endl;
-    cout << "1 * 0 = " << she.decrytpRealSquash(she.expandCT(c4)) << endl;
-    cout << "1 + 1 = " << she.decrytpRealSquash(she.expandCT(c5)) << endl;
-    cout << "0 + 0 = " << she.decrytpRealSquash(she.expandCT(c6)) << endl;
-    cout << "1 * 1 = " << she.decrytpRealSquash(she.expandCT(c7)) << endl;
-    cout << "0 * 0 = " << she.decrytpRealSquash(she.expandCT(c8)) << endl;
+    cout << 0 << " = " << she.decryptRealSquash(she.expandCT(c2)) << endl;
+    cout << 1 << " = " << she.decryptRealSquash(she.expandCT(c1)) << endl;
+    cout << "1 + 0 = " << she.decryptRealSquash(she.expandCT(c3)) << endl;
+    cout << "1 * 0 = " << she.decryptRealSquash(she.expandCT(c4)) << endl;
+    cout << "1 + 1 = " << she.decryptRealSquash(she.expandCT(c5)) << endl;
+    cout << "0 + 0 = " << she.decryptRealSquash(she.expandCT(c6)) << endl;
+    cout << "1 * 1 = " << she.decryptRealSquash(she.expandCT(c7)) << endl;
+    cout << "0 * 0 = " << she.decryptRealSquash(she.expandCT(c8)) << endl;
 
 }
 
@@ -411,46 +412,44 @@ void test_recrypt()
     char b1 = 1;
     char b2 = 0;
 
-    cout << "Clear / Real / Real2 / Normal / Recrypt" << endl;
+    cout << "Clear / Real / Normal / Recrypt" << endl;
     for(int i = 0; i < 10; i++)
     {
-        mpz_class c1 = she.encrypt(b2);
+        Cipher c1 = she.encrypt(b2);
 
-        mpz_class c3 = she.recrypt(c1);
+        Cipher c3 = she.recrypt(c1);
 
-        cout << "0 == " << she.decrytpRealSquash(she.expandCT(c1)) << " == " 
-        << she.decrytpRealSquash2(she.expandCT(c1)) 
-        << " == " << she.decrypt(c1) << " == " << she.decrytpRealSquash(she.expandCT(c3)) << endl;
+        cout << "0 == " << she.decryptRealSquash(she.expandCT(c1))
+        << " == " << she.decrypt(c1) << " == " << she.decryptRealSquash(she.expandCT(c3)) << endl;
     }
     cout << endl;
     for(int i = 0; i < 10; i++)
     {
-        mpz_class c1 = she.encrypt(b1);
+        Cipher c1 = she.encrypt(b1);
 
-        mpz_class c3 = she.recrypt(c1);
+        Cipher c3 = she.recrypt(c1);
 
-        cout << "1 == " << she.decrytpRealSquash(she.expandCT(c1)) << " == " 
-        << she.decrytpRealSquash2(she.expandCT(c1)) 
-        << " == " << she.decrypt(c1) << " == " << she.decrytpRealSquash(she.expandCT(c3)) << endl;
+        cout << "1 == " << she.decryptRealSquash(she.expandCT(c1))
+        << " == " << she.decrypt(c1) << " == " << she.decryptRealSquash(she.expandCT(c3)) << endl;
     }
 
     cout << endl;
 
-    mpz_class c1 = she.encrypt(b1);
-    mpz_class c2 = she.encrypt(b2);
+    Cipher c1 = she.encrypt(b1);
+    Cipher c2 = she.encrypt(b2);
 
-    mpz_class c3 = she.recrypt(she.addCipher(c1, c1));
-    mpz_class c4 = she.recrypt(she.addCipher(c2, c2));
-    mpz_class c5 = she.recrypt(she.addCipher(c1, c2));
-    mpz_class c6 = she.recrypt(she.mulCipher(c1, c2));
-    mpz_class c7 = she.recrypt(she.mulCipher(c1, c1));
-    mpz_class c8 = she.recrypt(she.mulCipher(c2, c2));
-    cout << "1 + 1 = " << she.decrytpRealSquash2(she.expandCT(c3)) << endl;
-    cout << "0 + 0 = " << she.decrytpRealSquash2(she.expandCT(c4)) << endl;
-    cout << "1 + 0 = " << she.decrytpRealSquash2(she.expandCT(c5)) << endl;
-    cout << "1 * 0 = " << she.decrytpRealSquash2(she.expandCT(c6)) << endl;
-    cout << "1 * 1 = " << she.decrytpRealSquash2(she.expandCT(c7)) << endl;
-    cout << "0 * 0 = " << she.decrytpRealSquash2(she.expandCT(c8)) << endl;
+    Cipher c3 = she.recrypt(c1 + c1);
+    Cipher c4 = she.recrypt(c2 + c2);
+    Cipher c5 = she.recrypt(c1 + c2);
+    Cipher c6 = she.recrypt(c1 * c2);
+    Cipher c7 = she.recrypt(c1 * c1);
+    Cipher c8 = she.recrypt(c2 * c2);
+    cout << "1 + 1 = " << she.decryptRealSquash(she.expandCT(c3)) << endl;
+    cout << "0 + 0 = " << she.decryptRealSquash(she.expandCT(c4)) << endl;
+    cout << "1 + 0 = " << she.decryptRealSquash(she.expandCT(c5)) << endl;
+    cout << "1 * 0 = " << she.decryptRealSquash(she.expandCT(c6)) << endl;
+    cout << "1 * 1 = " << she.decryptRealSquash(she.expandCT(c7)) << endl;
+    cout << "0 * 0 = " << she.decryptRealSquash(she.expandCT(c8)) << endl;
     cout << endl;
 
     cout << "Calul max degré : ";
@@ -474,7 +473,7 @@ void test_recrypt()
     cout << "Degré Max : " << degmax << endl;
     cout << endl;
     
-    mpz_class cb = she.encrypt(b1);
+    Cipher cb = she.encrypt(b1);
     char res = 1;
     
     int max_iter = 1000;
@@ -483,13 +482,13 @@ void test_recrypt()
     for(int i = 0; i < max_iter; i++) {
         int r = rand() % 2;
         char bit = rand() % 2;
-        mpz_class c = she.encrypt(bit);
+        Cipher c = she.encrypt(bit);
         if(r == 0) {
             res ^= bit;
-            cb = she.addCipher(cb, c);
+            cb = cb + c;
         } else {
             res = res & bit;
-            cb = she.mulCipher(cb, c);
+            cb = cb * c;
         }
         
         cb = she.recrypt(cb);
@@ -526,7 +525,7 @@ mpz_class perform_sum(int a, int b, int max_bits, SHE &she)
         bits_b[i] = (b >> i) & 1;
     }
 
-    vector<vector<mpz_class>> columns{};
+    vector<vector<Cipher>> columns{};
     columns.resize(max_bits);
     for(int i = 0; i < max_bits; i++) {
         columns[i].resize(2);
@@ -537,7 +536,7 @@ mpz_class perform_sum(int a, int b, int max_bits, SHE &she)
         columns[j][1] = she.encrypt(bits_b[j]);
     }
 
-    vector<mpz_class> res = gradeSchoolAddition(columns, she.get_d());
+    vector<Cipher> res = gradeSchoolAddition(columns);
 
     mpz_class resint = 0;
 
@@ -623,7 +622,7 @@ void getint(int i, int *rep) {
 void test_thread()
 {
     int rep = 0;
-    getint(14, &rep);
+    getint(10, &rep);
     cout << rep << endl;
 }
 
@@ -698,22 +697,45 @@ void test_invert_pol()
     gmp_randclear(state);
 }
 
-int main(void) 
+int main(int argc, char *argv[]) 
 {
     srand(time(NULL));
-    // test_mpz();
-    // test_polynomials();
-    // test_SHE();
-    // test_SHEM();
-    // test_GSA();
-    // test_squash();
-    // test_recrypt();
-    // cout << endl;
-    // test_sum_int();
+    for(int i = 1; i < argc; i ++) {
+        std::string command(argv[i]);
 
-    // test_mod();
-    // test_thread();
+        if (command == "mpz")
+            test_mpz();
 
-    test_invert_pol();
+        else if (command == "polynomials")
+            test_polynomials();
+
+        else if (command == "she")
+            test_SHE();
+
+        else if (command == "shem")
+            test_SHEM();
+
+        else if (command == "gsa")
+            test_GSA();
+
+        else if (command == "squash")
+            test_squash();
+
+        else if (command == "recrypt")
+            test_recrypt();
+
+        else if (command == "sum")
+            test_sum_int();
+
+        else if (command == "thread")
+            test_thread();
+
+        else if (command == "invert") 
+            test_invert_pol();
+        
+        else if (command == "mod")
+            test_mod();
+    }
+
     return 0;
 }

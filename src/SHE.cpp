@@ -4,8 +4,6 @@
 #include <tuple>
 #include <unistd.h>
 
-
-
 using namespace std;
 
 /**
@@ -21,7 +19,7 @@ SHE::SHE(int n, mpz_class max_v) : deg{1 << n}, polMod{1 << n}, state{}, max_v{m
         for(int j = 0; j < NB_ELEM; j++) {
             X [i][j] = 0;
             sk[i][j] = 0;
-            ck[i][j] = 0;
+            ck[i][j] = Cipher{this, 0};
         }
     }
 
@@ -129,7 +127,7 @@ void SHE::genKey()
 }
 
 /** Encryption */
-mpz_class SHE::encrypt(mpz_class bit){
+Cipher SHE::encrypt(mpz_class bit){
     Polynomial b{deg - 1};
     b[0] = bit & 1;
 
@@ -152,10 +150,10 @@ mpz_class SHE::encrypt(mpz_class bit){
     if (c >=   d / 2) c -= d;
     if (c < - d / 2) c += d;
 
-    return c;
+    return Cipher{this, c};
 }
 
-mpz_class SHE::encryptM(vector<char> bits)
+Cipher SHE::encryptM(vector<char> bits)
 {
     Polynomial b{deg - 1};
     for(unsigned int i = 0; i < bits.size(); i++)
@@ -179,29 +177,24 @@ mpz_class SHE::encryptM(vector<char> bits)
     if (c >=   d / 2) c -= d;
     if (c < - d / 2) c += d;
 
-    return c;
+    return Cipher{this, c};
 }
 
 /** Decryption */
-mpz_class SHE::decrypt(mpz_class text) {
+mpz_class SHE::decrypt(Cipher text) {
     mpz_class decrypt_coeff = wi;
-    mpz_class m = (decrypt_coeff * text) % d;
-    if (m >=  d / 2) m -= d;
-    if (m < - d / 2) m += d;
-    mpz_class b = m % 2;
+    Cipher m = (text * decrypt_coeff);
+    mpz_class b = m.getValue() % 2;
     return b & 1;
 }
 
-vector<mpz_class> SHE::decryptM(mpz_class text)
+vector<mpz_class> SHE::decryptM(Cipher text)
 {
-    vector<mpz_class> vec{};
+    vector<Cipher> vec{};
     vec.resize(deg);
 
-    for(int i = 0; i < deg; i++) {
-        vec[i] = (w[i] * text) % d;
-        if(vec[i] < - d / 2) vec[i] += d;
-        if(vec[i] >=  d / 2) vec[i] -= d;
-    }
+    for(int i = 0; i < deg; i++) 
+        vec[i] = (text * w[i]);
 
     vector<mpz_class> rep{};
     rep.resize(deg);
@@ -211,8 +204,8 @@ vector<mpz_class> SHE::decryptM(mpz_class text)
         bool minus = false;
         int k = i;
         for(int j = 0; j < deg; j++) {
-            if(!minus) rep[i] += v[k] * vec[j];
-            else rep[i] -= v[k] * vec[j];
+            if(!minus) rep[i] += vec[j].getValue() * v[k];
+            else rep[i] -= v[k] * vec[j].getValue();
             k--;
             if(k < 0) {
                 minus = true;
@@ -229,33 +222,18 @@ vector<mpz_class> SHE::decryptM(mpz_class text)
     return final;
 }
 
-mpz_class SHE::addCipher(mpz_class c1, mpz_class c2) {
-    mpz_class res = (c1 + c2) % d;
-    if (res >=  d / 2) res -= d;
-    if (res < - d / 2) res += d; 
-
-    return res;
-}
-mpz_class SHE::mulCipher(mpz_class c1, mpz_class c2) {
-    mpz_class res = (c1 * c2) % d;
-    if (res >=  d / 2) res -= d;
-    if (res < - d / 2) res += d; 
-
-    return res;
-}
-
 bool SHE::testPolynomial(int deg, char b) {
     Polynomial p{deg, 2, state};
     //cout << "P = " << p << endl;
-    mpz_class c = encrypt(b);
+    Cipher c = encrypt(b);
 
     mpz_class r1 = p.evalmod(b, 2) & 1;
-    mpz_class r2 = p.eval(c) % d;
+    mpz_class r2 = p.eval(c.getValue()) % d;
     if (r2 >=  d / 2) r2 -= d;
     if (r2 < - d / 2) r2 += d; 
 
 
-    mpz_class d1 = decrypt(r2);
+    mpz_class d1 = decrypt(Cipher{this, r2});
 
     //cout << "r1 = " << r1 << endl;
     //cout << "d1 = " << d1 << endl;
@@ -264,107 +242,52 @@ bool SHE::testPolynomial(int deg, char b) {
 }
 
 // Fonction renvoyant le ciphertext étendu neccessaire pour le Decrypt Squash
-vector<vector<mpz_class>> SHE::expandCT(mpz_class text) 
+vector<vector<Cipher>> SHE::expandCT(Cipher text) 
 {
-    vector<vector<mpz_class>> res{};
+    vector<vector<Cipher>> res{};
     res.resize(NB_KEY);
     for(int i = 0; i < NB_KEY; i++) {
         res[i].resize(NB_ELEM);
-        for(int j = 0; j < NB_ELEM; j++) {
+        for(int j = 0; j < NB_ELEM; j++)
             res[i][j] = ((text * X[i][j]) % d);
-            if(res[i][j] < 0) res[i][j] += d;
-        }
     }
     return res;
 }
 
 // Premiere Version du Decrypt Squash, pour tester si le expandCT et le splitKey fonctionne
-mpz_class SHE::decrytpSquash(vector<vector<mpz_class>> text)
+mpz_class SHE::decryptSquash(vector<vector<Cipher>> text)
 {
-    mpz_class res = 0;
-    for(int i = 0; i < NB_KEY; i++) {
-        for(int j = 0; j < NB_ELEM; j++) {
-            res = (res + (sk[i][j] * text[i][j])) % d;
-        }
-    }
-    if(res < -d / 2) res += d;
-    if(res >= d / 2) res -= d;
-    return res & 1;
+    Cipher res{this,0};
+    for(int i = 0; i < NB_KEY; i++) 
+        for(int j = 0; j < NB_ELEM; j++) 
+            res = (res + (text[i][j] * sk[i][j]));
+        
+    
+    return res.getValue() & 1;
 }
 
-// Le vrai decrypt Squash
-mpz_class SHE::decrytpRealSquash(vector<vector<mpz_class>> text)
+
+mpz_class SHE::decryptRealSquash(vector<vector<Cipher>> text)
 {
 
     // La partie Gauche le somme facile à calculer, juste une double Xor
     mpz_class left = 0;
     for(int i = 0; i < NB_KEY; i++) {
         for(int j = 0; j < NB_ELEM; j++) {
-            left ^= (text[i][j] & 1) & (sk[i][j]);
-        }
-    }
-
-    vector<mpz_class> vec{};
-    vec.resize(NB_KEY);
-
-    //TODO: log2(NB_KEY) + 1 !
-    //Nombre de bit apres la virgule
-    int precision = 7;
-
-    // On calcule les Xor de la partie droite
-    // On stocke ça dans v
-    for(int i = 0; i < NB_KEY; i++) {
-        vec[i] = 0;
-        for(int j = 0; j < NB_ELEM; j++) {
-            vec[i] ^= (sk[i][j] * ((text[i][j] << precision) / d));
-        }
-    }
-
-    vector<vector<mpz_class>> columns{};
-    columns.resize(precision + 1);
-    for(int i = 0; i < precision + 1; i++) {
-        columns[i].resize(NB_KEY);
-    }
-
-    // On prépare les colonnes pour le GSA
-    for(int j = 0; j < NB_KEY; j++) {
-        for(int i = 0; i < precision + 1; i++) {
-            columns[i][j] = (vec[j] >> i) & 1;
-        }
-    }
-
-    // On applique le GSA
-    vec = gradeSchoolAddition(columns);
-
-    // Pour faire le Round + Mod 2, il suffit de faire le Xor entre le bit avant la virgule et celui apres
-    mpz_class right = vec[precision] ^ vec[precision - 1];
-
-    // On renvoie le Xor final
-    return left ^ right;
-}
-
-
-mpz_class SHE::decrytpRealSquash2(vector<vector<mpz_class>> text)
-{
-
-    // La partie Gauche le somme facile à calculer, juste une double Xor
-    mpz_class left = 0;
-    for(int i = 0; i < NB_KEY; i++) {
-        for(int j = 0; j < NB_ELEM; j++) {
-            left ^= (text[i][j] & 1) & (sk[i][j]);
+            left ^= (text[i][j].getValue() & 1) & (sk[i][j]);
         }
     }
 
     //TODO: log2(NB_KEY) + 1 !
     //Nombre de bit apres la virgule
-    int precision = 7;
+    int precision = 5;
 
 
     mpz_class matrix[NB_KEY][NB_ELEM][precision + 1];
 
     for(int i = 0; i < NB_KEY; i++) {
         for(int j = 0; j < NB_ELEM; j++) {
-            mpz_class t = (text[i][j] << precision) / d;
+            mpz_class t = (text[i][j].getValue() << precision) / d;
             for(int k = 0; k < precision + 1; k++) {
                 //matrix[i][j][k] = encrypt((t >> k) & 1);
                 matrix[i][j][k] = ((t >> k) & 1) & (sk[i][j]);
@@ -406,65 +329,56 @@ mpz_class SHE::decrytpRealSquash2(vector<vector<mpz_class>> text)
 }
 
 
-
-mpz_class SHE::recrypt(mpz_class ctext)
+Cipher SHE::recrypt(Cipher ctext)
 {
-    vector<vector<mpz_class>> text = expandCT(ctext);
+    vector<vector<Cipher>> text = expandCT(ctext);
 
     // La partie Gauche le somme facile à calculer, juste une double Xor
-    mpz_class left = 0;
-    for(int i = 0; i < NB_KEY; i++) {
-        for(int j = 0; j < NB_ELEM; j++) {
-            left = addCipher(left, mulCipher(text[i][j] & 1, ck[i][j]));
-        }
-    }
+    Cipher left{this, 0};
+    for(int i = 0; i < NB_KEY; i++)
+        for(int j = 0; j < NB_ELEM; j++)
+            left = left + (ck[i][j] * (text[i][j].getValue() & 1));
 
     //TODO: log2(NB_KEY) + 1 !
     //Nombre de bit apres la virgule
     int precision = 5;
 
     // On calcule les Xor de la partie droite
-    mpz_class matrix[NB_KEY][NB_ELEM][precision + 1];
+    Cipher matrix[NB_KEY][NB_ELEM][precision + 1];
 
     for(int i = 0; i < NB_KEY; i++) {
         for(int j = 0; j < NB_ELEM; j++) {
-            mpz_class t = (text[i][j] << precision) / d;
-            for(int k = 0; k < precision + 1; k++) {
-                matrix[i][j][k] = mulCipher((t >> k) & 1, ck[i][j]);
-            } 
+            mpz_class t = (text[i][j].getValue() << precision) / d;
+            for(int k = 0; k < precision + 1; k++) 
+                matrix[i][j][k] = ck[i][j] * ((t >> k) & 1);
         }
     }
 
     //Premier Xor de Droite
-    mpz_class vec [NB_KEY][precision + 1];
+    Cipher vec [NB_KEY][precision + 1];
     for(int i = 0; i < NB_KEY; i++) {
-        for(int k = 0; k < precision + 1; k++) {
-            vec[i][k] = 0;
-        }
-        for(int j = 0; j < NB_ELEM; j++) {
-            for(int k = 0; k < precision + 1; k++) {
-                vec[i][k] = addCipher(vec[i][k], matrix[i][j][k]);
-            }
-        }
+        for(int k = 0; k < precision + 1; k++)
+            vec[i][k] = {this, 0};
+
+        for(int j = 0; j < NB_ELEM; j++)
+            for(int k = 0; k < precision + 1; k++)
+                vec[i][k] = vec[i][k] + matrix[i][j][k];
     }   
     
     // On Créer les colonnes pour le grade school
-    vector<vector<mpz_class>> columns{};
+    vector<vector<Cipher>> columns{};
     columns.resize(precision + 1);
-    for(int i = 0; i < precision + 1; i++) {
+    for(int i = 0; i < precision + 1; i++)
         columns[i].resize(NB_KEY);
-    }
 
-    for(int j = 0; j < NB_KEY; j++) {
-        for(int i = 0; i < precision + 1; i++) {
+    for(int j = 0; j < NB_KEY; j++)
+        for(int i = 0; i < precision + 1; i++)
             columns[i][j] = vec[j][i];
-        }
-    }    
 
-    vector<mpz_class> rep = gradeSchoolAddition(columns, d);
-    mpz_class right = addCipher(rep[precision], rep[precision - 1]);
+    vector<Cipher> rep = gradeSchoolAddition(columns);
+    Cipher right = rep[precision] + rep[precision -1];
 
-    return addCipher(left, right);
+    return left + right;
 
 }
 

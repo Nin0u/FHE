@@ -2,11 +2,14 @@
 #define SHE_H
 
 #include "Polynomial.hpp"
+#include "Cipher.hpp"
 
 #define MAX_ERROR   5
 
 #define NB_KEY  5
 #define NB_ELEM 100
+
+class Cipher;
 
 class SHE{
     private: 
@@ -28,7 +31,7 @@ class SHE{
         
         // Ajout à la clé publique (en plus de d et r)
         mpz_class X  [NB_KEY][NB_ELEM];
-        mpz_class ck [NB_KEY][NB_ELEM]; // sk chiffré
+        Cipher ck [NB_KEY][NB_ELEM]; // sk chiffré
 
         int genKeyCandidate(); // Générateur de candidat
         void splitKey();
@@ -41,21 +44,17 @@ class SHE{
 
         mpz_class get_d();
 
-        mpz_class encrypt(mpz_class bit);
-        mpz_class decrypt(mpz_class text);
+        Cipher encrypt(mpz_class bit);
+        mpz_class decrypt(Cipher text);
 
-        std::vector<std::vector<mpz_class>> expandCT(mpz_class text);
-        mpz_class decrytpSquash(std::vector<std::vector<mpz_class>> text);
-        mpz_class decrytpRealSquash(std::vector<std::vector<mpz_class>> text);
-        mpz_class decrytpRealSquash2(std::vector<std::vector<mpz_class>> text);
+        std::vector<std::vector<Cipher>> expandCT(Cipher text);
+        mpz_class decryptSquash(std::vector<std::vector<Cipher>> text);
+        mpz_class decryptRealSquash(std::vector<std::vector<Cipher>> text);
 
-        mpz_class encryptM(std::vector<char> bits);
-        std::vector<mpz_class> decryptM(mpz_class);
+        Cipher encryptM(std::vector<char> bits);
+        std::vector<mpz_class> decryptM(Cipher c);
 
-        mpz_class recrypt(mpz_class text);
-
-        mpz_class addCipher(mpz_class c1, mpz_class c2);
-        mpz_class mulCipher(mpz_class c1, mpz_class c2);
+        Cipher recrypt(Cipher c);
 
         bool testPolynomial(int deg, char b);
 
