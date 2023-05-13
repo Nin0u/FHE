@@ -16,10 +16,6 @@ std::vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> c
 Cipher polynomial_sym(int n, std::vector<Cipher> v);
 std::vector<Cipher> gradeSchoolAddition(std::vector<std::vector<Cipher>> column);
 
-//Chinese Remainder Theorem ou Theoreme des Reste Chinois
-mpz_class CRT(mpz_class a1, mpz_class p1, mpz_class a2, mpz_class p2);
-void CRT_polynomial(Polynomial v, Polynomial X, mpz_class *primes, int i, int deep, Polynomial *rep, mpz_class *r, mpz_class *mod);
-std::tuple<Polynomial, mpz_class> invert_Polynomial(Polynomial v, Polynomial X);
 
 mpz_class getDet(const std::vector<std::vector<mpz_class>> matrix);
 std::vector<std::vector<mpz_class>> getTranspose(const std::vector<std::vector<mpz_class>> matrix);

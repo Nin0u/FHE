@@ -5,6 +5,7 @@
 #include "SHE.hpp"
 #include "Algo.hpp"
 #include "Cipher.hpp"
+#include "Gen.hpp"
 
 #include <gmpxx.h>
 #include <unistd.h>
@@ -661,10 +662,14 @@ void test_invert_pol()
 
 
     cout << "==== TEST POLYNOME ====" << endl;
-    Polynomial p1{7, 100, state};
+    int deg = 1 << 8;
 
-    Polynomial p2{8};
-    p2[8] = 1;
+    mpz_class max{1};
+    max <<= 10;
+    Polynomial p1{deg - 1, max, state};
+
+    Polynomial p2{deg};
+    p2[deg] = 1;
     p2[0] = 1;
     
     cout << "p1 : " << p1 << endl;
@@ -673,26 +678,77 @@ void test_invert_pol()
     Polynomial w;
     mpz_class d;
 
-    tie(w, d) = invert_Polynomial(p1, p2);
+    //! ATTENTION : le 3eme argument, sur votre PC, faite attention, pas audessus de 15, et au dessus de 10 peut faire planter le PC
+    //! Correspond à 2^(3eme argument) threads !!!!!
+    tie(w, d) = invert_Polynomial(p1, p2, 8, 50);
 
-    cout << "w = " << w << endl;
+    //cout << "w = " << w << endl;
     cout << "d = " << d << endl;
-    cout << "d1 = " << d % mpz_class{1073741831} << endl;
-    cout << "d2 = " << d % mpz_class{1073741833} << endl;
 
-    Polynomial q, r;
-    Polynomial p3 = p1 * w;
-    mpz_class aa;
-    tie(aa, q, r) = p3.EuclidianDiv(p2);
-    cout << r << endl;
+    // Polynomial q, r;
+    // Polynomial p3 = p1 * w;
+    // mpz_class aa;
+    // tie(aa, q, r) = p3.EuclidianDiv(p2);
+    // cout << r << endl;
 
 
     Polynomial G, U, V;
     tie(G, U, V) = p2.Bezout(p1);
     cout << "**d = " << G << endl;
-    cout << "**d1 = " << G[0] % mpz_class{1073741831} << endl;
-    cout << "**d2 = " << G[0] % mpz_class{1073741833} << endl;
-    cout << "**w = " << V << endl;
+    //cout << "**w = " << V << endl;
+    cout << "**w0 = " << V[0] << endl;
+
+    mpz_class r1 = d / G[0];
+    mpz_class r2 = w[0] / V[0];
+    cout << "r1 = " << r1 << endl;
+    cout << "r2 = " << r2 << endl;
+
+    bool b1 = ((r1 * G[0]) == d);
+    bool b2 = ((r1 * V[0]) == w[0]);
+    cout << boolalpha << b1 << endl;
+    cout << boolalpha << b2 << endl;
+
+
+    gmp_randclear(state);
+}
+
+void test_di()
+{
+    gmp_randstate_t state;
+    gmp_randinit_mt(state);
+    gmp_randseed_ui(state, rand());
+
+    int de = 1 << 3;
+
+    Polynomial p1{de - 1, 100, state};
+
+    Polynomial p2{de};
+    p2[de] = 1;
+    p2[0] = 1;
+    
+    cout << "p1 : " << p1 << endl;
+    cout << "p2 : " << p2 << endl;
+
+    mpz_class a = {1};
+    a <<= 60;
+
+    int deg = 2 * p2.getDeg();
+
+    mpz_class prime;
+    do {
+        mpz_nextprime (prime.get_mpz_t(), a.get_mpz_t());
+        a = prime;
+    } while(a % (deg) != 1);
+    cout << "prime = 1 mod 2^" << deg << " : " << a << endl;
+
+    mpz_class d = get_di(p1, prime, p2.getDeg());
+
+    cout << "di : " << d << endl;
+
+    Polynomial G, U, V;
+    tie(G, U, V) = p2.Bezout(p1);
+    cout << "**d = " << G << endl;
+    cout << "**di = " << G[0] % prime << endl;  
 
     gmp_randclear(state);
 }
@@ -735,6 +791,8 @@ int main(int argc, char *argv[])
         
         else if (command == "mod")
             test_mod();
+        else if (command == "di")
+            test_di();
     }
 
     return 0;
