@@ -93,12 +93,17 @@ mpz_class get_racine_prim(mpz_class prime, int ieme)
     return root;
 }
 
-mpz_class get_di(Polynomial v, mpz_class prime, int deg)
+tuple<mpz_class, mpz_class> get_di(Polynomial v, mpz_class prime, int deg)
 {
     int ieme = deg << 1;
     mpz_class root = get_racine_prim(prime, ieme);
     mpz_class di = 1;
     mpz_class current_root = root;
+
+    vector<mpz_class> sum{};
+    sum.resize(deg);
+    for(int i = 0; i < deg; i++)
+        sum[i] = 1;
 
     int j = 0;
     for(int i = 0; i < ieme; i += 2) {
@@ -107,40 +112,49 @@ mpz_class get_di(Polynomial v, mpz_class prime, int deg)
         di *= vj;
         di %= prime;
 
+        for(int k = 0; k < deg; k++) {
+            if(k != j) {
+                sum[k] *= vj;
+                sum[k] %= prime;
+            }
+        }
+
         current_root *= root;
         current_root *= root;
         current_root %= prime;
         j++;
     }
 
-    return di;
+    mpz_class w0 = 0;
+    for(int i = 0; i < deg; i++) 
+        w0 += sum[i];
+    
+    w0 %= prime;
+
+    mpz_class n = deg;
+    mpz_class n1;
+    mpz_invert(n1.get_mpz_t(), n.get_mpz_t(), prime.get_mpz_t());
+    mpz_class test = (n * n1) % prime;
+    w0 *= n1;
+    w0 %= prime;
+    if(w0 <= -prime / 2) w0 += prime;
+    else if(w0 >= prime / 2) w0 -= prime;
+
+    return tie(di, w0);
 }
 
 void CRT_di(Polynomial v, Polynomial X, mpz_class *primes, int i, int deep, mpz_class *r, mpz_class *w0, mpz_class *mod)
 {
     if(deep == 0)
     {
-        //cout << i << " prime : " << primes[i] << endl;
-
         mpz_class prime = primes[i];
         v.reduce(prime);
 
-        mpz_class d = get_di(v, prime,X.getDeg());
-
-        //cout << "di = " << d << endl;
-
-        Polynomial G,U,V;
-        tie(G,U,V) = X.Bezout(v, prime);
-        mpz_class g = G[0];
-        mpz_class g1;
-        mpz_invert(g1.get_mpz_t(), g.get_mpz_t(), prime.get_mpz_t());
-        mpz_class w00 = (V[0] * g1 * d) % prime;
-
+        mpz_class d, w00;
+        tie(d, w00) = get_di(v, prime,X.getDeg());
+ 
         *r = d;
-        if(w00 <= -prime / 2) w00 += prime;
-        else if(w00 >= prime / 2) w00 -= prime; 
         *w0 = w00;
-
         *mod = prime;
         return;
     }    

@@ -702,6 +702,9 @@ void test_invert_pol()
     mpz_class r2 = w[0] / V[0];
     cout << "r1 = " << r1 << endl;
     cout << "r2 = " << r2 << endl;
+    mpz_class gcd;
+    mpz_gcd(gcd.get_mpz_t(), d.get_mpz_t(), w[0].get_mpz_t());
+    cout << "gcd = " << gcd << endl;
 
     bool b1 = ((r1 * G[0]) == d);
     bool b2 = ((r1 * V[0]) == w[0]);
@@ -741,14 +744,16 @@ void test_di()
     } while(a % (deg) != 1);
     cout << "prime = 1 mod 2^" << deg << " : " << a << endl;
 
-    mpz_class d = get_di(p1, prime, p2.getDeg());
+    mpz_class d, w0;
+    tie(d, w0) = get_di(p1, prime, p2.getDeg());
 
     cout << "di : " << d << endl;
 
     Polynomial G, U, V;
     tie(G, U, V) = p2.Bezout(p1);
     cout << "**d = " << G << endl;
-    cout << "**di = " << G[0] % prime << endl;  
+    cout << "**di = " << G[0] % prime << endl;
+    cout << "**w0 = " << V[0] % prime << endl;  
 
     gmp_randclear(state);
 }
