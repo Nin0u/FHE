@@ -684,6 +684,7 @@ void test_invert_pol()
 
     //cout << "w = " << w << endl;
     cout << "d = " << d << endl;
+    cout << "w1 = " << w[1] << endl; 
 
     // Polynomial q, r;
     // Polynomial p3 = p1 * w;
@@ -697,19 +698,26 @@ void test_invert_pol()
     cout << "**d = " << G << endl;
     //cout << "**w = " << V << endl;
     cout << "**w0 = " << V[0] << endl;
+    cout << "**w1 = " << V[0] << endl; 
 
     mpz_class r1 = d / G[0];
     mpz_class r2 = w[0] / V[0];
+    mpz_class r3 = w[1] / V[1];
     cout << "r1 = " << r1 << endl;
     cout << "r2 = " << r2 << endl;
+    cout << "r3 = " << r3 << endl;
+    mpz_class gcd1;
     mpz_class gcd;
-    mpz_gcd(gcd.get_mpz_t(), d.get_mpz_t(), w[0].get_mpz_t());
+    mpz_gcd(gcd1.get_mpz_t(), d.get_mpz_t(), w[0].get_mpz_t());
+    mpz_gcd(gcd.get_mpz_t(),gcd1.get_mpz_t(), w[1].get_mpz_t());
     cout << "gcd = " << gcd << endl;
 
     bool b1 = ((r1 * G[0]) == d);
-    bool b2 = ((r1 * V[0]) == w[0]);
+    bool b2 = ((r2 * V[0]) == w[0]);
+    bool b3 = ((r3 * V[1]) == w[1]);
     cout << boolalpha << b1 << endl;
     cout << boolalpha << b2 << endl;
+    cout << boolalpha << b3 << endl;
 
 
     gmp_randclear(state);
@@ -744,16 +752,19 @@ void test_di()
     } while(a % (deg) != 1);
     cout << "prime = 1 mod 2^" << deg << " : " << a << endl;
 
-    mpz_class d, w0;
-    tie(d, w0) = get_di(p1, prime, p2.getDeg());
+    mpz_class d, w0, w1;
+    tie(d, w0, w1) = get_di(p1, prime, p2.getDeg());
 
     cout << "di : " << d << endl;
+    cout << "w0 : " << w0 << endl;
+    cout << "w1 : " << w1 << endl;
 
     Polynomial G, U, V;
     tie(G, U, V) = p2.Bezout(p1);
     cout << "**d = " << G << endl;
     cout << "**di = " << G[0] % prime << endl;
     cout << "**w0 = " << V[0] % prime << endl;  
+    cout << "**w1 = " << V[1] % prime << endl;
 
     gmp_randclear(state);
 }

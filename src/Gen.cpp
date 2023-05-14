@@ -93,17 +93,28 @@ mpz_class get_racine_prim(mpz_class prime, int ieme)
     return root;
 }
 
-tuple<mpz_class, mpz_class> get_di(Polynomial v, mpz_class prime, int deg)
+tuple<mpz_class, mpz_class, mpz_class> get_di(Polynomial v, mpz_class prime, int deg)
 {
     int ieme = deg << 1;
     mpz_class root = get_racine_prim(prime, ieme);
     mpz_class di = 1;
     mpz_class current_root = root;
 
+    Polynomial v2{deg - 1};
+    for(int i = 1; i < deg; i++) {
+        v2[i] = v[i - 1];
+    }
+    v2[0] = -v[deg - 1];
+
     vector<mpz_class> sum{};
     sum.resize(deg);
     for(int i = 0; i < deg; i++)
         sum[i] = 1;
+
+    vector<mpz_class> sum2{};
+    sum2.resize(deg);
+    for(int i = 0; i < deg; i++)
+        sum2[i] = 1;
 
     int j = 0;
     for(int i = 0; i < ieme; i += 2) {
@@ -112,10 +123,15 @@ tuple<mpz_class, mpz_class> get_di(Polynomial v, mpz_class prime, int deg)
         di *= vj;
         di %= prime;
 
+        mpz_class v2j = v2.evalmod(current_root, prime);
+
         for(int k = 0; k < deg; k++) {
             if(k != j) {
                 sum[k] *= vj;
                 sum[k] %= prime;
+
+                sum2[k] *= v2j;
+                sum2[k] %= prime;
             }
         }
 
@@ -126,10 +142,15 @@ tuple<mpz_class, mpz_class> get_di(Polynomial v, mpz_class prime, int deg)
     }
 
     mpz_class w0 = 0;
+    mpz_class w1 = 0;
     for(int i = 0; i < deg; i++) 
         w0 += sum[i];
+
+    for(int i = 0; i < deg; i++)
+        w1 += sum2[i];
     
     w0 %= prime;
+    w1 %= prime;
 
     mpz_class n = deg;
     mpz_class n1;
@@ -140,21 +161,27 @@ tuple<mpz_class, mpz_class> get_di(Polynomial v, mpz_class prime, int deg)
     if(w0 <= -prime / 2) w0 += prime;
     else if(w0 >= prime / 2) w0 -= prime;
 
-    return tie(di, w0);
+    w1 *= n1;
+    w1 %= prime;
+    if(w1 <= -prime / 2) w1 += prime;
+    else if(w1 >= prime / 2) w1 -= prime;
+
+    return tie(di, w0, w1);
 }
 
-void CRT_di(Polynomial v, Polynomial X, mpz_class *primes, int i, int deep, mpz_class *r, mpz_class *w0, mpz_class *mod)
+void CRT_di(Polynomial v, Polynomial X, mpz_class *primes, int i, int deep, mpz_class *r, mpz_class *w0, mpz_class *w1, mpz_class *mod)
 {
     if(deep == 0)
     {
         mpz_class prime = primes[i];
         v.reduce(prime);
 
-        mpz_class d, w00;
-        tie(d, w00) = get_di(v, prime,X.getDeg());
+        mpz_class d, w00, w11;
+        tie(d, w00, w11) = get_di(v, prime,X.getDeg());
  
         *r = d;
         *w0 = w00;
+        *w1 = w11;
         *mod = prime;
         return;
     }    
@@ -162,8 +189,9 @@ void CRT_di(Polynomial v, Polynomial X, mpz_class *primes, int i, int deep, mpz_
     mpz_class d1, d2;
     mpz_class mod1, mod2;
     mpz_class w00, w01;
-    thread t1{CRT_di, v, X, primes, i, deep - 1, &d1, &w00, &mod1};
-    thread t2{CRT_di, v, X, primes, i + (1 << (deep - 1)), deep - 1, &d2, &w01, &mod2};
+    mpz_class w10, w11;
+    thread t1{CRT_di, v, X, primes, i, deep - 1, &d1, &w00, &w10, &mod1};
+    thread t2{CRT_di, v, X, primes, i + (1 << (deep - 1)), deep - 1, &d2, &w01, &w11, &mod2};
 
     t1.join();
     t2.join();
@@ -174,8 +202,13 @@ void CRT_di(Polynomial v, Polynomial X, mpz_class *primes, int i, int deep, mpz_
     if(w000 <= -(mod1 * mod2) / 2) w000 += mod1 * mod2;
     else if(w000 >= (mod1 * mod2) / 2) w000 -= mod1 * mod2;
 
+    mpz_class w111 = CRT(w10, mod1, w11, mod2);
+    if(w111 <= -(mod1 * mod2) / 2) w111 += mod1 * mod2;
+    else if(w111 >= (mod1 * mod2) / 2) w111 -= mod1 * mod2;
+
     *r = d;
     *w0 = w000;
+    *w1 = w111;
     *mod = mod1 * mod2;
     return;
 }
@@ -205,11 +238,13 @@ tuple<Polynomial, mpz_class> invert_Polynomial(Polynomial v, Polynomial X, int m
     mpz_class d;
     mpz_class mod;
     mpz_class w0;
+    mpz_class w1;
 
 
-    CRT_di(v, X, primes, 0, deep, &d, &w0,&mod);
+    CRT_di(v, X, primes, 0, deep, &d, &w0, &w1,&mod);
     cout << "w0 = " << w0 << endl;
     w[0] = w0;
+    w[1] = w1;
 
     return tie(w, d);
 }
