@@ -662,7 +662,7 @@ void test_invert_pol()
 
 
     cout << "==== TEST POLYNOME ====" << endl;
-    int deg = 1 << 8;
+    int deg = 1 << 10;
 
     mpz_class max{1};
     max <<= 10;
@@ -680,7 +680,7 @@ void test_invert_pol()
 
     //! ATTENTION : le 3eme argument, sur votre PC, faite attention, pas audessus de 15, et au dessus de 10 peut faire planter le PC
     //! Correspond à 2^(3eme argument) threads !!!!!
-    tie(w, d) = invert_Polynomial(p1, p2, 8, 50);
+    tie(w, d) = invert_Polynomial(p1, p2, 10, 100);
 
     //cout << "w = " << w << endl;
     cout << "d = " << d << endl;
@@ -802,7 +802,7 @@ int main(int argc, char *argv[])
         else if (command == "thread")
             test_thread();
 
-        else if (command == "invert") 
+        else if (command == "invert")
             test_invert_pol();
         
         else if (command == "mod")
