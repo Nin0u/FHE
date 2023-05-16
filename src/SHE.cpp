@@ -146,6 +146,7 @@ Cipher SHE::encrypt(mpz_class bit){
     } while(count < MAX_ERROR);
     u = u * mpz_class{2};
     Polynomial a = b + u;
+
     mpz_class c = a.evalmod(r,d);
     if (c >=   d / 2) c -= d;
     if (c < - d / 2) c += d;
@@ -391,4 +392,52 @@ ostream &operator<<(ostream &out, const SHE& she){
     out << "wi = " << she.wi << endl;
 
     return out;
+}
+
+Polynomial SHE::getE(mpz_class c)
+{
+    Polynomial C{0, {c}};
+    Polynomial cw = C * w;
+    for(int i = 0; i <= cw.getDeg(); i++) {
+        cw[i] %= d;
+        if (cw[i] >=  d / 2) cw[i] -= d;
+        if (cw[i] < - d / 2) cw[i] += d; 
+    }
+
+    vector<mpz_class> rep{};
+    rep.resize(deg);
+
+    for(int i = 0; i < deg; i++) {
+        rep[i] = 0; 
+        bool minus = false;
+        int k = i;
+        for(int j = 0; j < deg; j++) {
+            if(!minus) rep[i] += cw[j] * v[k];
+            else rep[i] -= v[k] * cw[j];
+            k--;
+            if(k < 0) {
+                minus = true;
+                k += deg;
+            }
+        }
+    }
+
+    for(int i = 0; i < deg; i++) {
+        rep[i] /= d;
+    }
+
+    return Polynomial{deg, rep};
+}
+
+mpz_class SHE::getNorm(mpz_class c)
+{
+    mpz_class normesq{0};
+    Polynomial A = getE(c);
+    for(int i = 0; i <= A.getDeg(); i++) {
+        normesq += A[i] * A[i];
+    }
+
+    mpz_class rep;
+    mpz_sqrt(rep.get_mpz_t(), normesq.get_mpz_t());
+    return rep;
 }

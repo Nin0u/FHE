@@ -665,7 +665,7 @@ void test_invert_pol()
     int deg = 1 << 8;
 
     mpz_class max{1};
-    max <<= 10;
+    max <<= 256;
     Polynomial p1{deg - 1, max, state};
 
     Polynomial p2{deg};
@@ -680,7 +680,7 @@ void test_invert_pol()
 
     //! ATTENTION : le 3eme argument, sur votre PC, faite attention, pas audessus de 15, et au dessus de 10 peut faire planter le PC
     //! Correspond à 2^(3eme argument) threads !!!!!
-    tie(w, d) = invert_Polynomial(p1, p2, 8, 50);
+    tie(w, d) = invert_Polynomial(p1, p2, 10, 100);
 
     //cout << "w = " << w << endl;
     cout << "d = " << d << endl;
@@ -769,6 +769,96 @@ void test_di()
     gmp_randclear(state);
 }
 
+void test_deg_recrypt()
+{
+    int deg = 6;
+    mpz_class max{1};
+    max <<= 256;
+
+    SHE she{deg, max};
+    she.genKey();
+
+
+    cout << "Calul max degré : ";
+    cout.flush();
+    int degmax = 0;
+    for(int i = 0; i < 1000; i++) {
+        bool b;
+        if (!(b = she.testPolynomial(2 + i, 0))) break;
+        //else cout << boolalpha << b << endl;
+
+        if (!(b = she.testPolynomial(2 + i, 1))) break;
+        //else cout << boolalpha << b << endl;
+        degmax++;
+        if(i % 10 == 0) {
+            cout << ". ";
+            cout.flush();
+        }
+    }
+
+    cout << endl;
+    cout << "Degré Max : " << degmax << endl;
+    cout << endl;
+
+    int deg_rec = 0;
+
+    int b1 = rand() % 2;
+    Cipher c1 = she.encrypt(b1);
+    Cipher r1 = she.recrypt(c1);
+    mpz_class b2 = she.decrypt(r1);
+
+   // cout << b1 << " == " << b2 << " " << boolalpha << (b1 == b2) << endl;
+    deg_rec = r1.getNbTimes();
+    cout << "Degré Recrypt = " << deg_rec << endl;
+
+    
+    int max_iter = 1000;
+    int m = 0;
+
+    gmp_randstate_t state;
+    gmp_randinit_mt(state);
+    gmp_randseed_ui(state, rand());
+
+    mpz_class d = she.get_d();
+
+    for(int i = 2; i < max_iter; i++) {
+        Polynomial p{i, 2, state};
+        //cout << "P = " << p << endl;
+        char b = rand() % 2;
+        Cipher c = she.encrypt(b);
+
+        mpz_class r1 = p.evalmod(b, 2) & 1;
+        mpz_class r2 = p.eval(c.getValue()) % d;
+        if (r2 >=  d / 2) r2 -= d;
+        if (r2 < - d / 2) r2 += d; 
+
+        Cipher cb{&she, r2};
+        Cipher cr = she.recrypt(cb);
+        cout << "nr = " << she.getNorm(cr.getValue()) << endl;
+        cout << "nb = " << she.getNorm(cb.getValue()) << endl;
+        mpz_class diff = she.getNorm(cb.getValue()) - she.getNorm(cr.getValue());
+        //cout << "diff norme = " << diff << endl;
+
+        mpz_class bd = she.decrypt(cb);
+        mpz_class r = she.decrypt(cr);
+        if(bd != r1) {
+            cout << "END Dec" << endl;
+            break;
+        }
+        if(r != r1) {
+            cout << "END Rec" << endl;
+            break;
+        }
+
+        
+        m = i;
+    }
+      
+    cout << "Max degree before recrypt : " << m << endl;
+
+    gmp_randclear(state);
+}
+
 int main(int argc, char *argv[]) 
 {
     srand(time(NULL));
@@ -809,6 +899,9 @@ int main(int argc, char *argv[])
             test_mod();
         else if (command == "di")
             test_di();
+
+        else if (command == "deg_rec")
+            test_deg_recrypt();
     }
 
     return 0;

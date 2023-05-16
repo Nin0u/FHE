@@ -58,6 +58,10 @@ class SHE{
 
         bool testPolynomial(int deg, char b);
 
+        Polynomial getE(mpz_class c);
+        mpz_class getNorm(mpz_class c);
+
+
     friend std::ostream &operator<<(std::ostream &out, const SHE& she);
 
 };

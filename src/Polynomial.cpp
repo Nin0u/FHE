@@ -195,6 +195,7 @@ mpz_class Polynomial::eval(mpz_class r){
 mpz_class Polynomial::evalmod(mpz_class r, mpz_class mod){
     mpz_class sum{0};
     mpz_class Ri{1};
+    
     for(int i = 0; i <= deg; i++){
         sum += coeffs[i] * Ri;
         sum %= mod;

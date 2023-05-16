@@ -34,6 +34,7 @@ Cipher operator+(Cipher c1, Cipher c2) {
     if (c.value < - d / 2) c.value += d; 
 
     c.nb_plus = c1.nb_plus + c2.nb_plus;
+    c.nb_times = (c1.nb_times >= c2.nb_times ? c1.nb_times : c2.nb_times);
 
     return c;
 }
@@ -47,6 +48,8 @@ Cipher operator*(Cipher c1, Cipher c2) {
     if (c.value >=  d / 2) c.value -= d;
     if (c.value < - d / 2) c.value += d; 
 
+    c.nb_plus = (c1.nb_plus >= c2.nb_plus ? c1.nb_plus : c2.nb_plus);
+    c.nb_times = c1.nb_times + c2.nb_times;
 
     return c;
 }
@@ -68,11 +71,13 @@ Cipher operator*(Cipher c1, mpz_class c2) {
 Cipher operator%(Cipher c1, mpz_class d) {
     Cipher c{c1.she, c1.value % d};
     if (c.value < 0) c.value += d;
+    c.nb_plus = c1.nb_plus;
+    c.nb_times = c1.nb_times;
 
     return c;
 }
 
 ostream &operator<<(ostream &out, const Cipher& c) {
-    out << "+ : " << c.nb_plus << endl << "* : " << c.nb_times << endl << "Chiffré :" << c.value << endl;
+    out << c.value << endl;
     return out;
 }
