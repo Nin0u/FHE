@@ -662,7 +662,7 @@ void test_invert_pol()
 
 
     cout << "==== TEST POLYNOME ====" << endl;
-    int deg = 1 << 8;
+    int deg = 1 << 10;
 
     mpz_class max{1};
     max <<= 256;
@@ -892,7 +892,7 @@ int main(int argc, char *argv[])
         else if (command == "thread")
             test_thread();
 
-        else if (command == "invert") 
+        else if (command == "invert")
             test_invert_pol();
         
         else if (command == "mod")
