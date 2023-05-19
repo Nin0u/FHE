@@ -1,18 +1,18 @@
 import matplotlib.pyplot as plt
-import os
+import math
 
 if __name__ == "__main__" :
     time = []
     norm = []
     f = open("out/plot.out", "r")
     lines = f.readlines()
-    rdec = int(lines[0])
-    rdecs = int(lines[1])
+    rdec = math.log10(int(lines[0]))
+    rdecs = math.log10(int(lines[1]))
     for i in range(2, len(lines)):
         lines[i] = lines[i].strip('\n')
         data = lines[i].split(",")
         time.append(float(data[0]))
-        norm.append(int(data[1]))
+        norm.append(math.log10(int(data[1])))
     f.close()
 
     plt.scatter(time,norm)
