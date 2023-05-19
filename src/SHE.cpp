@@ -105,14 +105,6 @@ void SHE::splitKey()
         }
     }
 
-    // for(int i = 0; i < NB_KEY; i++) {
-    //     for(int j = 0; j < NB_ELEM; j++) {
-    //         cout << sk[i][j] << " ";
-    //     }
-    //     cout << endl;
-    // }
-
-
     for(int i = 0; i < NB_KEY; i++) {
         for(int j = 0; j < NB_ELEM; j++) {
             ck[i][j] = encrypt(sk[i][j] & 1);
@@ -225,7 +217,6 @@ vector<mpz_class> SHE::decryptM(Cipher text)
 
 bool SHE::testPolynomial(int deg, char b) {
     Polynomial p{deg, 2, state};
-    //cout << "P = " << p << endl;
     Cipher c = encrypt(b);
 
     mpz_class r1 = p.evalmod(b, 2) & 1;
@@ -233,11 +224,7 @@ bool SHE::testPolynomial(int deg, char b) {
     if (r2 >=  d / 2) r2 -= d;
     if (r2 < - d / 2) r2 += d; 
 
-
     mpz_class d1 = decrypt(Cipher{this, r2});
-
-    //cout << "r1 = " << r1 << endl;
-    //cout << "d1 = " << d1 << endl;
 
     return r1 == d1;
 }
@@ -440,4 +427,18 @@ mpz_class SHE::getNorm(mpz_class c)
     mpz_class rep;
     mpz_sqrt(rep.get_mpz_t(), normesq.get_mpz_t());
     return rep;
+}
+
+mpz_class SHE::getRDec() {
+    mpz_class normesqrt{};
+
+    // On va ajouter norme du polynome W car toutes les lignes de W ont la même norme.
+    for(int i = 0; i <= w.getDeg(); i++) 
+        normesqrt += w[i] * w[i];
+
+    // Racine carrée
+    mpz_class norme;
+    mpz_sqrt(norme.get_mpz_t(), normesqrt.get_mpz_t());
+    mpz_class res = d / (2 * norme);
+    return res;
 }

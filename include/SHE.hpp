@@ -5,7 +5,6 @@
 #include "Cipher.hpp"
 
 #define MAX_ERROR   5
-
 #define NB_KEY  5
 #define NB_ELEM 100
 
@@ -61,6 +60,7 @@ class SHE{
         Polynomial getE(mpz_class c);
         mpz_class getNorm(mpz_class c);
 
+        mpz_class getRDec(); // A supprimer en cas de déploiement
 
     friend std::ostream &operator<<(std::ostream &out, const SHE& she);
 

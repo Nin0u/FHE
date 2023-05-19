@@ -1,15 +1,15 @@
 #include <iostream>
+#include <fstream>
 #include <tuple>
+#include <gmpxx.h>
+#include <unistd.h>
+#include <thread>
 
 #include "Polynomial.hpp"
 #include "SHE.hpp"
 #include "Algo.hpp"
 #include "Cipher.hpp"
 #include "Gen.hpp"
-
-#include <gmpxx.h>
-#include <unistd.h>
-#include <thread>
 
 using namespace std;
 
@@ -823,7 +823,6 @@ void test_deg_recrypt()
 
     for(int i = 2; i < max_iter; i++) {
         Polynomial p{i, 2, state};
-        //cout << "P = " << p << endl;
         char b = rand() % 2;
         Cipher c = she.encrypt(b);
 
@@ -850,13 +849,28 @@ void test_deg_recrypt()
             break;
         }
 
-        
         m = i;
     }
       
     cout << "Max degree before recrypt : " << m << endl;
 
     gmp_randclear(state);
+}
+
+void test_rdec() {
+    int deg = 6;
+    mpz_class max{1};
+    max <<= 256;
+
+    SHE she{deg, max};
+    she.genKey();
+
+    mpz_class rdec = she.getRDec();
+    ofstream outfile;
+    outfile.open("out/plot.out", ios::trunc);
+    outfile << rdec << "\n";
+    outfile.close();
+    execlp("python3", "python3", "src/plot.py", NULL);
 }
 
 int main(int argc, char *argv[]) 
@@ -897,11 +911,15 @@ int main(int argc, char *argv[])
         
         else if (command == "mod")
             test_mod();
+
         else if (command == "di")
             test_di();
 
         else if (command == "deg_rec")
             test_deg_recrypt();
+
+        else if (command == "rdec")
+            test_rdec();
     }
 
     return 0;

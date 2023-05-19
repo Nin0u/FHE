@@ -41,7 +41,6 @@ Cipher operator+(Cipher c1, Cipher c2) {
 
 Cipher operator*(Cipher c1, Cipher c2) {
     // TODO : si c1.nb_times + c2.nb_times  max_times : Recrypt value et mettre le nouveau nb_plus =1 et nb_times = 2
-
     Cipher c {c1.she, 0};
     mpz_class d = c1.she->get_d();
     c.value = (c1.value * c2.value) % d;
@@ -56,6 +55,7 @@ Cipher operator*(Cipher c1, Cipher c2) {
 
 Cipher operator*(Cipher c1, mpz_class c2) {
     // TODO : si c1.nb_times + c2.nb_times  max_times : Recrypt value et mettre le nouveau nb_plus =1 et nb_times = 2
+    
     Cipher c {c1.she, 0};
     mpz_class d = c1.she->get_d();
     c.value = (c1.value * c2) % d;
