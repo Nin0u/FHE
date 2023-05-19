@@ -858,6 +858,7 @@ void test_deg_recrypt()
 }
 
 void test_rdec() {
+    // Paramètres du SHE
     int deg = 6;
     mpz_class max{1};
     max <<= 256;
@@ -865,11 +866,79 @@ void test_rdec() {
     SHE she{deg, max};
     she.genKey();
 
+    // Calcul du rDec
     mpz_class rdec = she.getRDec();
+
+    // On ouvre le fichier de sortie
     ofstream outfile;
     outfile.open("out/plot.out", ios::trunc);
-    outfile << rdec << "\n";
+
+    // On écrit rDec dans le fichier
+    outfile << rdec <<  "\n";
+    outfile << rdec/ (NB_KEY + 1) << "\n";
+
+    // On démarre une horloge qui définit les abscisses de notre graphique.
+    clock_t start = clock();
+
+    // On créer un chiffré qu'on ne va pas toucher pour le moment
+    int b1 = rand() % 2;
+    Cipher c1 = she.encrypt(b1);
+    outfile << float(clock() - start) / CLOCKS_PER_SEC << "," << she.getNorm(c1.getValue()) << "\n";
+
+    // On créer un deuxième chiffré
+    int b2 = rand() % 2;
+    Cipher c2 = she.encrypt(b2);
+
+    // Pour générer le polynome
+    gmp_randstate_t state;
+    gmp_randinit_mt(state);
+    gmp_randseed_ui(state, rand());
+
+    // Nb d'iteration max
+    int max_iter = 100;
+    mpz_class d = she.get_d();
+
+
+    for(int i = 0; i < max_iter; i++) {
+        Polynomial P{80,2, state};
+
+        mpz_class r1 = P.evalmod(b2, 2) & 1; // P(b2)
+        mpz_class r2 = P.eval(c2.getValue()); // P(c2)
+
+        Cipher c3{&she, r2};
+        Cipher prod = c1 + c3; // c1 * P(c2);
+        Cipher prodrc = she.recrypt(prod);
+
+        mpz_class bd = she.decrypt(prod); 
+        mpz_class r = she.decrypt(prodrc); 
+
+        // Il faut bd = b1 * P(b2) Sinon on recrypt les données de base
+        if ((bd & 1) != ((b1^r1)&1)) {
+            c1 = she.recrypt(c1);
+            c3 = she.recrypt(c3);
+            prod = c1 + c3;
+        }
+
+        // Il faut r = b1 * P(b2) Sinon on recrypt les données de base
+        if ((r & 1) != ((b1^r1)&1)) {
+            c1 = she.recrypt(c1);
+            c3 = she.recrypt(c3);
+            prod = c1 + c3;
+        }
+
+        if (she.getNorm(prod.getValue()) > (rdec)) {
+            c1 = she.recrypt(c1);
+            c3 = she.recrypt(c3);
+            prod = c1 + c3;
+        }
+
+        outfile << float(clock() - start) / CLOCKS_PER_SEC << "," << she.getNorm(prod.getValue()) << "\n";
+        c1 = prod;
+    }
+
+    // On ferme le fichier
     outfile.close();
+    // On execute python pour tracer les graphiques
     execlp("python3", "python3", "src/plot.py", NULL);
 }
 
