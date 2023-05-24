@@ -857,6 +857,13 @@ void test_deg_recrypt()
     gmp_randclear(state);
 }
 
+int minimum(vector<int> l) {
+    int m = l[0];
+    for (int i = 1; i < l.size(); i++)
+        if (l[i] < m) m = l[i];
+    return m;
+}
+
 void test_rdec() {
     // Paramètres du SHE
     int deg = 6;
@@ -898,7 +905,7 @@ void test_rdec() {
     int max_iter = 100;
     mpz_class d = she.get_d();
 
-
+    vector<int> nb_times{};
     for(int i = 0; i < max_iter; i++) {
         Polynomial P{80,2, state};
 
@@ -914,6 +921,8 @@ void test_rdec() {
 
         // Il faut bd = b1 * P(b2) Sinon on recrypt les données de base
         if ((bd & 1) != ((b1^r1)&1)) {
+            nb_times.push_back(c1.getNbTimes());
+            nb_times.push_back(c3.getNbTimes());
             c1 = she.recrypt(c1);
             c3 = she.recrypt(c3);
             prod = c1 + c3;
@@ -921,12 +930,16 @@ void test_rdec() {
 
         // Il faut r = b1 * P(b2) Sinon on recrypt les données de base
         if ((r & 1) != ((b1^r1)&1)) {
+            nb_times.push_back(c1.getNbTimes());
+            nb_times.push_back(c3.getNbTimes());
             c1 = she.recrypt(c1);
             c3 = she.recrypt(c3);
             prod = c1 + c3;
         }
 
         if (she.getNorm(prod.getValue()) > (rdec)) {
+            nb_times.push_back(c1.getNbTimes());
+            nb_times.push_back(c3.getNbTimes());
             c1 = she.recrypt(c1);
             c3 = she.recrypt(c3);
             prod = c1 + c3;
@@ -938,6 +951,8 @@ void test_rdec() {
 
     // On ferme le fichier
     outfile.close();
+
+    cout << "Minimum mul avant recrypt : " << minimum(nb_times) << endl;
     // On execute python pour tracer les graphiques
     execlp("python3", "python3", "src/plot.py", NULL);
 }
@@ -1083,6 +1098,7 @@ int main(int argc, char *argv[])
 
         else if (command == "rdec")
             test_rdec();
+
         else if (command == "new_invert")
             test_newInvert();
     }

@@ -23,4 +23,4 @@ if __name__ == "__main__" :
     plt.axhline(y = rdec, color='r', label="rDec")
     plt.axhline(y = rdecs, color='green', label="rDec/(s+1)")
     plt.legend()
-    plt.show()
+    plt.savefig("graph.pdf")
