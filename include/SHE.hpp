@@ -3,6 +3,7 @@
 
 #include "Polynomial.hpp"
 #include "Cipher.hpp"
+#include "Gen.hpp"
 
 #define MAX_ERROR   5
 #define NB_KEY  5
@@ -33,13 +34,14 @@ class SHE{
         Cipher ck [NB_KEY][NB_ELEM]; // sk chiffré
 
         int genKeyCandidate(); // Générateur de candidat
+        int genKeyCandidateNew(); // Générateur de candidat
         void splitKey();
 
 
     public:
         SHE(int n, mpz_class max_v);
         virtual ~SHE();
-        void genKey(); // Générateur de clé
+        void genKey(int mode); // Générateur de clé
 
         mpz_class get_d();
 

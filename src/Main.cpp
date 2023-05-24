@@ -94,7 +94,7 @@ void test_polynomials(){
 
 void test_SHE(){
     SHE she{8, 1 << 30};
-    she.genKey();
+    she.genKey(1);
     cout << she << endl;
 
     cout << "==== Encrypt / Decrypt un bit ====" << endl;
@@ -183,9 +183,9 @@ void test_SHE(){
 
 void test_SHEM()
 {
-    int deg = 3;
+    int deg = 8;
     SHE she{deg, 100};
-    she.genKey();
+    she.genKey(1);
     cout << she << endl;
 
     cout << "==== Encrypt / Decrypt plusieurs bits ====" << endl;
@@ -258,7 +258,7 @@ void test_SHEM()
 void test_squash()
 {
     SHE she{6, 100};
-    she.genKey();
+    she.genKey(1);
 
     char b1 = 1;
     char b2 = 0;
@@ -407,8 +407,8 @@ void test_recrypt()
 {
     mpz_class max = 1;
     max <<= 380;
-    SHE she{6, max};
-    she.genKey();
+    SHE she{10, max};
+    she.genKey(1);
 
     char b1 = 1;
     char b2 = 0;
@@ -552,7 +552,7 @@ void test_sum_int() {
     mpz_class max = 1;
     max <<= 380;
     SHE she{6, max};
-    she.genKey();
+    she.genKey(0);
 
     int a = rand() % 256;
     int b = rand() % 256;
@@ -776,7 +776,7 @@ void test_deg_recrypt()
     max <<= 256;
 
     SHE she{deg, max};
-    she.genKey();
+    she.genKey(0);
 
 
     cout << "Calul max degré : ";
@@ -864,7 +864,7 @@ void test_rdec() {
     max <<= 256;
 
     SHE she{deg, max};
-    she.genKey();
+    she.genKey(0);
 
     // Calcul du rDec
     mpz_class rdec = she.getRDec();
@@ -942,6 +942,100 @@ void test_rdec() {
     execlp("python3", "python3", "src/plot.py", NULL);
 }
 
+void test_newInvert()
+{
+    gmp_randstate_t state;
+    gmp_randinit_mt(state);
+    gmp_randseed_ui(state, rand());
+    
+    cout << "==== TEST CRT ====" << endl;
+
+
+    mpz_class big = 1;
+    big <<= 50;
+    cout << big << endl;
+    mpz_class prime1, prime2;
+    mpz_nextprime (prime1.get_mpz_t(), big.get_mpz_t());
+    mpz_nextprime (prime2.get_mpz_t(), prime1.get_mpz_t());
+    cout << prime1 << " " << prime2 << endl;
+
+    mpz_class a, b;
+    big << 50;
+    mpz_urandomm(a.get_mpz_t(), state, big.get_mpz_t());
+    mpz_urandomm(b.get_mpz_t(), state, big.get_mpz_t());
+
+    cout << a << " " << b << endl;
+    
+    a %= prime1;
+    b %= prime2;
+
+    mpz_class c = CRT(a, prime1, b, prime2);
+    if(c < 0) c += prime1 * prime2;
+    if(a < 0) a += prime1;
+    if(b < 0) b += prime2;
+    cout << a << " == " << c % prime1 << " " << b << " == " << c % prime2 << endl; 
+
+
+    cout << "==== TEST POLYNOME ====" << endl;
+    int deg = 1 << 8;
+
+    mpz_class max{1};
+    max <<= 100;
+    Polynomial p1{deg - 1, max, state};
+
+    Polynomial p2{deg};
+    p2[deg] = 1;
+    p2[0] = 1;
+    
+    cout << "p1 : " << p1 << endl;
+    cout << "p2 : " << p2 << endl;
+
+    Polynomial w;
+    mpz_class d;
+
+    tie(w, d) = invert_Polynomial(p1, p2, 100);
+
+    //cout << "w = " << w << endl;
+    cout << "d = " << d << endl;
+    cout << "w1 = " << w[1] << endl; 
+
+    // Polynomial q, r;
+    // Polynomial p3 = p1 * w;
+    // mpz_class aa;
+    // tie(aa, q, r) = p3.EuclidianDiv(p2);
+    // cout << r << endl;
+
+
+    Polynomial G, U, V;
+    tie(G, U, V) = p2.Bezout(p1);
+    cout << "**d = " << G << endl;
+    //cout << "**w = " << V << endl;
+    cout << "**w0 = " << V[0] << endl;
+    cout << "**w1 = " << V[0] << endl; 
+
+    mpz_class r1 = d / G[0];
+    mpz_class r2 = w[0] / V[0];
+    mpz_class r3 = w[1] / V[1];
+    cout << "r1 = " << r1 << endl;
+    cout << "r2 = " << r2 << endl;
+    cout << "r3 = " << r3 << endl;
+    mpz_class gcd1;
+    mpz_class gcd;
+    mpz_gcd(gcd1.get_mpz_t(), d.get_mpz_t(), w[0].get_mpz_t());
+    mpz_gcd(gcd.get_mpz_t(),gcd1.get_mpz_t(), w[1].get_mpz_t());
+    cout << "gcd = " << gcd << endl;
+
+    bool b1 = ((r1 * G[0]) == d);
+    bool b2 = ((r2 * V[0]) == w[0]);
+    bool b3 = ((r3 * V[1]) == w[1]);
+    cout << boolalpha << b1 << endl;
+    cout << boolalpha << b2 << endl;
+    cout << boolalpha << b3 << endl;
+
+
+    gmp_randclear(state);
+}
+
 int main(int argc, char *argv[]) 
 {
     srand(time(NULL));
@@ -989,6 +1083,8 @@ int main(int argc, char *argv[])
 
         else if (command == "rdec")
             test_rdec();
+        else if (command == "new_invert")
+            test_newInvert();
     }
 
     return 0;

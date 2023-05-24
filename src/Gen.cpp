@@ -1,6 +1,7 @@
 #include "Gen.hpp"
 #include <iostream>
 #include <thread>
+#include <fstream>
 
 using namespace std;
 
@@ -218,20 +219,17 @@ tuple<Polynomial, mpz_class> invert_Polynomial(Polynomial v, Polynomial X, int m
 {
     int deep = max_thread;
 
-    mpz_class primes[1 << deep];
+    mpz_class primes[1 << 15];
     mpz_class a = {1};
     a <<= max_prime;
 
-    int deg = 2 * X.getDeg();
+    ifstream infile{"prime.out"};
 
-    mpz_class prime;
-    for(int i = 0; i < 1 << deep; i++) {
-        do {
-            mpz_nextprime (prime.get_mpz_t(), a.get_mpz_t());
-            a = prime;
-        } while(a % (deg) != 1);
-        //cout << "prime = 1 mod 2^" << deg << " : " << a << endl;
-        primes[i] = a;
+    for(int i = 0; i < 1 << 15; i++) {
+        string s;
+        infile >> s;
+        primes[i] = mpz_class{s};
+       // cout << primes[i] << endl;
     }
 
     Polynomial w{X.getDeg() - 1};
@@ -242,10 +240,72 @@ tuple<Polynomial, mpz_class> invert_Polynomial(Polynomial v, Polynomial X, int m
 
 
     CRT_di(v, X, primes, 0, deep, &d, &w0, &w1,&mod);
-    cout << "w0 = " << w0 << endl;
+    //cout << "w0 = " << w0 << endl;
     w[0] = w0;
     w[1] = w1;
 
     return tie(w, d);
 }
 
+
+tuple<Polynomial, mpz_class> invert_Polynomial(Polynomial v, Polynomial X, int max_prime)
+{
+    int deep = 10; //! Changer !
+
+    mpz_class primes[1 << 15];
+    mpz_class a = {1};
+    a <<= max_prime;
+
+    ifstream infile{"prime.out"};
+
+    for(int i = 0; i < 1 << 15; i++) {
+        string s;
+        infile >> s;
+        primes[i] = mpz_class{s};
+       // cout << i << " " << primes[i] << endl;
+    }
+
+
+    Polynomial w{X.getDeg() - 1};
+    mpz_class d;
+    mpz_class mod;
+    mpz_class w0;
+    mpz_class w1;
+
+    deep = 5;
+
+    CRT_di(v, X, primes, 0, deep, &d, &w0, &w1,&mod);
+
+    while(1)
+    {
+        cout << "deep : " << deep << endl;
+        mpz_class dd;
+        mpz_class modd;
+        mpz_class w00;
+        mpz_class w11;
+        CRT_di(v, X, primes, 1 << deep, deep, &dd, &w00, &w11, &modd);
+        //cout << d << " " << dd << endl;
+        if(d == dd) break;
+        
+        mpz_class ddd = CRT(dd, modd, d, mod);
+        //cout << "d = " << d << endl;
+        mpz_class w000 = CRT(w00, modd, w0, mod);
+        if(w000 <= -(mod * modd) / 2) w000 += mod * modd;
+        else if(w000 >= (mod * modd) / 2) w000 -= mod * modd;
+
+        mpz_class w111 = CRT(w11, modd, w1, mod);
+        if(w111 <= -(mod * modd) / 2) w111 += mod * modd;
+        else if(w111 >= (mod * modd) / 2) w111 -= mod * modd;
+
+        d = ddd;
+        w0 = w000;
+        w1 = w111;
+        mod = mod * modd;
+        deep++;
+    }
+    //cout << "w0 = " << w0 << endl;
+    w[0] = w0;
+    w[1] = w1;
+
+    return tie(w, d);
+}

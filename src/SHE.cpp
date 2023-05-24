@@ -77,6 +77,47 @@ int SHE::genKeyCandidate()
     return 1;
 }
 
+
+int SHE::genKeyCandidateNew()
+{   
+    v = Polynomial{deg - 1, max_v, state};
+    Polynomial W{deg - 1};
+    mpz_class d;
+
+    tie(W,d) =  invert_Polynomial(v, polMod, 10);
+
+    if (d % 2 == 0) return 0;
+
+    mpz_class g,v1,v2;
+    mpz_gcdext(g.get_mpz_t(), v1.get_mpz_t() ,v2.get_mpz_t(), W[1].get_mpz_t(), d.get_mpz_t());
+    if(g != 1) return 0;
+    r = (W[0] * v1) % d;
+
+    mpz_class res;
+    mpz_powm(res.get_mpz_t() , r.get_mpz_t() , mpz_class{deg}.get_mpz_t() , d.get_mpz_t());
+    mpz_add(res.get_mpz_t(), res.get_mpz_t(), mpz_class{1}.get_mpz_t());
+    mpz_mod(res.get_mpz_t(), res.get_mpz_t(), d.get_mpz_t());
+    if(res != 0) return 0; 
+
+    W[deg - 1] = (r * W[0]) % d;
+    if(W[deg - 1] < - d / 2) W[deg - 1] += d;
+    if(W[deg - 1] >=  d / 2) W[deg - 1] -= d;
+    for(int i = deg - 2; i > 1; i--) {
+        W[i] = (r * W[i + 1]) % d;
+        if(W[i] < - d / 2) W[i] += d;
+        if(W[i] >=  d / 2) W[i] -= d;
+    }
+
+    int index_odd_coeff = W.hasOddCoeff();
+    if (index_odd_coeff == -1) return 0;
+    
+    this->d = d;
+    this->r = r;
+    w = W;
+    wi = W[index_odd_coeff];
+    return 1;
+}
+
 void SHE::splitKey()
 {
     mpz_class split_sk[NB_KEY];
@@ -112,9 +153,12 @@ void SHE::splitKey()
     }
 }
 
-void SHE::genKey() 
+void SHE::genKey(int mode) 
 { 
-    while(!genKeyCandidate()); 
+    if(mode == 0)
+        while(!genKeyCandidate()); 
+    else if(mode == 1)
+        while(!genKeyCandidateNew());
     splitKey();
 }
 
