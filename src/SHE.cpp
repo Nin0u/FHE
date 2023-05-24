@@ -110,7 +110,6 @@ int SHE::genKeyCandidateNew()
     mpz_powm(res.get_mpz_t() , r.get_mpz_t() , mpz_class{deg}.get_mpz_t() , d.get_mpz_t());
     mpz_add(res.get_mpz_t(), res.get_mpz_t(), mpz_class{1}.get_mpz_t());
     mpz_mod(res.get_mpz_t(), res.get_mpz_t(), d.get_mpz_t());
-    cout << "r ^ n + 1 = " << res << endl;
     if(res != 0) return 0; 
 
 
@@ -124,7 +123,6 @@ int SHE::genKeyCandidateNew()
     }
 
     int index_odd_coeff = W.hasOddCoeff();
-    cout << "ODD COEFF" << endl;
     if (index_odd_coeff == -1) return 0;
 
     
