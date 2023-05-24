@@ -24,6 +24,7 @@ class SHE{
         // Clé publique
         mpz_class d;
         mpz_class r;
+        std::vector<mpz_class> ri;
 
         // Clé privée
         mpz_class wi;

@@ -10,7 +10,7 @@ using namespace std;
  * Constructeur
  * Construit le polynome X^(2^n) + 1
  */
-SHE::SHE(int n, mpz_class max_v) : deg{1 << n}, polMod{1 << n}, state{}, max_v{max_v}
+SHE::SHE(int n, mpz_class max_v) : deg{1 << n}, polMod{1 << n}, state{}, max_v{max_v}, ri{}
 {
     polMod[0] = mpz_class{1};
     polMod[deg] =  mpz_class{1}; 
@@ -22,6 +22,8 @@ SHE::SHE(int n, mpz_class max_v) : deg{1 << n}, polMod{1 << n}, state{}, max_v{m
             ck[i][j] = Cipher{this, 0};
         }
     }
+
+    ri.resize(deg);
 
     gmp_randinit_mt(state);
     gmp_randseed_ui(state, rand());
@@ -74,6 +76,16 @@ int SHE::genKeyCandidate()
     this->r = r;
     w = V;
     wi = V[index_odd_coeff];
+
+    mpz_class rri = 1;
+    for(int i = 0; i < deg; i++) {
+        ri[i] = rri;
+        rri *= r;
+        rri %= d;
+        if(rri < -d/2) rri += d;
+        if(rri >= d/2) rri -= d;
+    } 
+
     return 1;
 }
 
@@ -85,6 +97,7 @@ int SHE::genKeyCandidateNew()
     mpz_class d;
 
     tie(W,d) =  invert_Polynomial(v, polMod, 10);
+    cout << "END" << endl;
 
     if (d % 2 == 0) return 0;
 
@@ -97,7 +110,9 @@ int SHE::genKeyCandidateNew()
     mpz_powm(res.get_mpz_t() , r.get_mpz_t() , mpz_class{deg}.get_mpz_t() , d.get_mpz_t());
     mpz_add(res.get_mpz_t(), res.get_mpz_t(), mpz_class{1}.get_mpz_t());
     mpz_mod(res.get_mpz_t(), res.get_mpz_t(), d.get_mpz_t());
+    cout << "r ^ n + 1 = " << res << endl;
     if(res != 0) return 0; 
+
 
     W[deg - 1] = (r * W[0]) % d;
     if(W[deg - 1] < - d / 2) W[deg - 1] += d;
@@ -109,12 +124,26 @@ int SHE::genKeyCandidateNew()
     }
 
     int index_odd_coeff = W.hasOddCoeff();
+    cout << "ODD COEFF" << endl;
     if (index_odd_coeff == -1) return 0;
+
     
     this->d = d;
     this->r = r;
     w = W;
     wi = W[index_odd_coeff];
+    
+    mpz_class rri = 1;
+    for(int i = 0; i < deg; i++) {
+        ri[i] = rri;
+        rri *= r;
+        rri %= d;
+        if(rri < -d/2) rri += d;
+        if(rri >= d/2) rri -= d;
+    } 
+
+
+    cout << "FIN" << endl;
     return 1;
 }
 
@@ -183,8 +212,14 @@ Cipher SHE::encrypt(mpz_class bit){
     u = u * mpz_class{2};
     Polynomial a = b + u;
 
-    mpz_class c = a.evalmod(r,d);
-    if (c >=   d / 2) c -= d;
+    mpz_class c{0};
+
+    for(int i = 0; i <= a.getDeg(); i++) {
+        c += a[i] * ri[i];
+        c %= d;
+    }
+
+    if (c >=  d / 2) c -= d;
     if (c < - d / 2) c += d;
 
     return Cipher{this, c};
