@@ -447,6 +447,61 @@ Cipher SHE::recrypt(Cipher ctext)
 
 }
 
+Cipher SHE::recrypt(Cipher ctext, ofstream &outfile)
+{
+
+    vector<vector<Cipher>> text = expandCT(ctext);
+
+    // La partie Gauche le somme facile à calculer, juste une double Xor
+    Cipher left{this, 0};
+    for(int i = 0; i < NB_KEY; i++)
+        for(int j = 0; j < NB_ELEM; j++)
+            left = left + (ck[i][j] * (text[i][j].getValue() & 1));
+
+    //TODO: log2(NB_KEY) + 1 !
+    //Nombre de bit apres la virgule
+    int precision = 5;
+
+    // On calcule les Xor de la partie droite
+    Cipher matrix[NB_KEY][NB_ELEM][precision + 1];
+
+    for(int i = 0; i < NB_KEY; i++) {
+        for(int j = 0; j < NB_ELEM; j++) {
+            mpz_class t = (text[i][j].getValue() << precision) / d;
+            for(int k = 0; k < precision + 1; k++) 
+                matrix[i][j][k] = ck[i][j] * ((t >> k) & 1);
+        }
+    }
+
+    //Premier Xor de Droite
+    Cipher vec [NB_KEY][precision + 1];
+    for(int i = 0; i < NB_KEY; i++) {
+        for(int k = 0; k < precision + 1; k++)
+            vec[i][k] = {this, 0};
+
+        for(int j = 0; j < NB_ELEM; j++)
+            for(int k = 0; k < precision + 1; k++)
+                vec[i][k] = vec[i][k] + matrix[i][j][k];
+    }   
+    
+    // On Créer les colonnes pour le grade school
+    vector<vector<Cipher>> columns{};
+    columns.resize(precision + 1);
+    for(int i = 0; i < precision + 1; i++)
+        columns[i].resize(NB_KEY);
+
+    for(int j = 0; j < NB_KEY; j++)
+        for(int i = 0; i < precision + 1; i++)
+            columns[i][j] = vec[j][i];
+
+    vector<Cipher> rep = gradeSchoolAddition(columns, outfile);
+    Cipher right = rep[precision] + rep[precision -1];
+    outfile << right.getNorm() << " r\n";
+
+    return left + right;
+
+}
+
 /** Méthode d'affichage */
 ostream &operator<<(ostream &out, const SHE& she){
     out << "V = " << she.v << endl;

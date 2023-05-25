@@ -239,125 +239,32 @@ vector<Cipher> gradeSchoolAddition(vector<vector<Cipher>> columns)
     return res;
 }
 
-mpz_class getDet(const std::vector<std::vector<mpz_class>> matrix) {
-    size_t dim = matrix[0].size();
-    size_t height = matrix.size();
-    if(height != dim) {
-        throw std::runtime_error("Matrice non carrée");
-    }
+vector<Cipher> gradeSchoolAddition(vector<vector<Cipher>> columns, ofstream &outfile)
+{
+    //Initialisation
+    vector<Cipher> res{};
+    res.resize(columns.size());
 
-    if(dim == 0) {
-        return 1;
-    }
+    for(unsigned int i = 0; i < columns.size(); i++)
+        res[i] = {columns[i][0].getSHE(), 0};
 
-    if(dim == 1) {
-        return matrix[0][0];
-    }
+    // Pour chaque colonne
+    for(unsigned int i = 0; i < columns.size(); i++)
+    {
+        //On calcule le Xor
+        for(unsigned int j = 0; j < columns[i].size(); j++)
+            res[i] = res[i] + columns[i][j];
+        int k = 1;
 
-    if(dim == 2) {
-        return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
-    }
-
-    mpz_class res = 0;
-    int sign = 1;
-    for(size_t i = 0; i < dim; i++) {
-        std::vector<std::vector<mpz_class>> subVect(dim - 1, std::vector<mpz_class> (dim - 1));
-        for(size_t m = 1; m < dim; m++) {
-            int z = 0;
-            for(size_t n = 0; n < dim; n++) {
-                if(n != i) {
-                    subVect[m-1][z] = matrix[m][n];
-                    z++;
-                }
-            }
-        }
-
-        res = res + sign * matrix[0][i] * getDet(subVect);
-        sign = -sign;
-    }
-
-    return res;
-}
-
-std::vector<std::vector<mpz_class>> getTranspose(const std::vector<std::vector<mpz_class>> matrix) {
-    size_t width = matrix[0].size();
-    size_t height = matrix.size();
-    std::vector<std::vector<mpz_class>> res{width, std::vector<mpz_class>{height}};
-    for(size_t i = 0; i < height; i++) {
-        for(size_t j = 0; j < width; j++) {
-            res[j][i] = matrix[i][j];
+        //Puis grace aux polynome symétrique, on add dans la bonne colonne
+        for(unsigned int j = i + 1; j < columns.size(); j++) {
+            //cout << i << " " << j << " " << k << endl;
+            Cipher b = polynomial_sym(1 << k, columns[i]);
+            mpz_class norm = b.getNorm();
+            if(norm > 0) outfile << norm << " r\n";
+            columns[j].push_back(b);
+            k++;
         }
     }
-    return res;
-}
-
-std::vector<std::vector<mpz_class>> getCofactor(const std::vector<std::vector<mpz_class>> matrix) {
-    size_t width = matrix[0].size();
-    size_t dim = matrix.size();
-    if(width != dim) {
-        throw std::runtime_error("Matrice non carrée");
-    } 
-
-    std::vector<std::vector<mpz_class>> res{dim, std::vector<mpz_class>{dim}};
-    std::vector<std::vector<mpz_class>> subVect{dim - 1, std::vector<mpz_class>{dim - 1}};
-
-    for(size_t i = 0; i < dim; i++) {
-        for(size_t j = 0; j < dim; j++) {
-
-            int p = 0;
-            for(size_t x = 0; x < dim; x++) {
-                if(x == i) {
-                    continue;
-                }
-                int q = 0;
-
-                for(size_t y = 0; y < dim; y++) {
-                    if(y == j) {
-                        continue;
-                    }
-
-                    subVect[p][q] = matrix[x][y];
-                    q++;
-                }
-                p++;
-            }
-            int sign = ((i + j) % 2) ? -1 : 1;
-            res[i][j] = sign * getDet(subVect);
-        }
-    }
-    return res;
-}
-
-std::vector<std::vector<mpz_class>> getInverse(const std::vector<std::vector<mpz_class>> matrix) {
-    size_t dim = matrix.size();
-    if(getDet(matrix) == 0) {
-        throw std::runtime_error("Déterminant nul");
-    } 
-
-    mpz_class d = 1/getDet(matrix);
-    std::vector<std::vector<mpz_class>> res{dim, std::vector<mpz_class>{dim}};
-
-    for(size_t i = 0; i < dim; i++) {
-        for(size_t j = 0; j < dim; j++) {
-            res[i][j] = matrix[i][j]; 
-        }
-    }
-
-    res = getTranspose(getCofactor(res));
-
-    for(size_t i = 0; i < dim; i++) {
-        for(size_t j = 0; j < dim; j++) {
-            res[i][j] *= d;
-        }
-    }
-
-    return res;
-}
-
-mpz_class getNorm(const std::vector<std::vector<mpz_class>> basis) {
-    return 1; // TODO
-}
-
-mpz_class getRadius(const std::vector<std::vector<mpz_class>> basis) {
-    return 1 / (2 * getNorm(getTranspose(getInverse(basis))));
+    return res;   
 }

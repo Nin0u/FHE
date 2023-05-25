@@ -953,6 +953,133 @@ void test_rdec() {
     outfile.close();
 
     cout << "Minimum mul avant recrypt : " << minimum(nb_times) << endl;
+    gmp_randclear(state);
+
+    // On execute python pour tracer les graphiques
+    execlp("python3", "python3", "src/plot.py", NULL);
+}
+
+
+void test_graph() {
+    // Paramètres du SHE
+    int deg = 6;
+    mpz_class max{1};
+    max <<= 256;
+
+    SHE she{deg, max};
+    she.genKey(1);
+
+    // Calcul du rDec
+    mpz_class rdec = she.getRDec();
+
+    // On ouvre le fichier de sortie
+    ofstream outfile;
+    outfile.open("out/plot.out", ios::trunc);
+
+    // On écrit rDec dans le fichier
+    outfile << rdec <<  "\n";
+    outfile << rdec/ (NB_KEY + 1) << "\n";
+
+    // On démarre une horloge qui définit les abscisses de notre graphique.
+    clock_t start = clock();
+
+    // On créer un chiffré qu'on ne va pas toucher pour le moment
+    int b = rand() % 2;
+    Cipher c = she.encrypt(b);
+    outfile << she.getNorm(c.getValue()) << " *" << "\n";
+
+    // Nb d'iteration max
+    int max_iter = 100;
+    mpz_class d = she.get_d();
+
+    vector<int> nb_times{};
+    for(int i = 0; i < max_iter; i++) {
+        Cipher cc = she.encrypt(b);
+        Cipher ccc = c * cc;
+        for(int j = 1; j < 5; j++) {
+            ccc = ccc * cc;
+        }
+        if(she.getNorm(ccc.getValue()) >= rdec / (NB_KEY + 1)) {
+            nb_times.push_back(c.getNbTimes());
+            c = she.recrypt(c, outfile);
+            cout << "REC NORM" << endl;
+        } else if((she.decrypt(ccc) & 1) != (b & 1)) {
+            nb_times.push_back(c.getNbTimes());
+            c = she.recrypt(c, outfile);
+            cout << "REC DEC" << endl;
+        } else if ((she.decrypt(she.recrypt(ccc)) & 1) != (b & 1)) {
+            nb_times.push_back(c.getNbTimes());
+            c = she.recrypt(c, outfile);
+            cout << "REC REC" << endl;
+        } else {
+            c = ccc;
+            outfile << she.getNorm(c.getValue()) << " *" << "\n";
+            cout << she.getNorm(c.getValue()) << endl;
+        }
+    }
+
+    int oldb = b;
+
+    for(int i = 0; i < max_iter; i++) {
+        Cipher cc = she.encrypt(b);
+        Cipher ccc = c + cc;
+        b ^= oldb;
+        for(int j = 1; j < 5; j++) {
+            ccc = ccc + cc;
+            b ^= oldb;
+        }
+        if(she.getNorm(ccc.getValue()) >= rdec / (NB_KEY + 1)) {
+            nb_times.push_back(c.getNbTimes());
+            c = she.recrypt(c, outfile);
+            b = oldb;
+        } else if((she.decrypt(ccc) & 1) != (b & 1)) {
+            nb_times.push_back(c.getNbTimes());
+            c = she.recrypt(c, outfile);
+            b = oldb;
+        } else if ((she.decrypt(she.recrypt(ccc)) & 1) != (b & 1)) {
+            nb_times.push_back(c.getNbTimes());
+            c = she.recrypt(c, outfile);
+            b = oldb;
+        } else {
+            c = ccc;
+            outfile << she.getNorm(c.getValue()) << " +" << "\n";
+            oldb = b;
+            cout << she.getNorm(c.getValue()) << endl;
+        }
+    }
+
+    for(int i = 0; i < max_iter; i++) {
+        Cipher ccc = c + c;
+        b ^= oldb;
+        for(int j = 1; j < 5; j++) {
+            ccc = ccc + c;
+            b ^= oldb;
+        }
+        if(she.getNorm(ccc.getValue()) >= rdec / (NB_KEY + 1)) {
+            nb_times.push_back(c.getNbTimes());
+            c = she.recrypt(c, outfile);
+            b = oldb;
+        } else if((she.decrypt(ccc) & 1) != (b & 1)) {
+            nb_times.push_back(c.getNbTimes());
+            c = she.recrypt(c, outfile);
+            b = oldb;
+        } else if ((she.decrypt(she.recrypt(ccc)) & 1) != (b & 1)) {
+            nb_times.push_back(c.getNbTimes());
+            c = she.recrypt(c, outfile);
+            b = oldb;
+        } else {
+            c = ccc;
+            outfile << she.getNorm(c.getValue()) << " !" << "\n";
+            oldb = b;
+            cout << she.getNorm(c.getValue()) << endl;
+        }
+    }
+
+    // On ferme le fichier
+    outfile.close();
+
+    cout << "Minimum mul avant recrypt : " << minimum(nb_times) << endl;
+
     // On execute python pour tracer les graphiques
     execlp("python3", "python3", "src/plot.py", NULL);
 }
@@ -1101,6 +1228,8 @@ int main(int argc, char *argv[])
 
         else if (command == "new_invert")
             test_newInvert();
+        else if (command == "graph")
+            test_graph();
     }
 
     return 0;

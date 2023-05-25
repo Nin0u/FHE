@@ -24,6 +24,11 @@ Cipher &Cipher::operator=(const Cipher &c) {
     return *this;
 }
 
+mpz_class Cipher::getNorm() {
+    return she->getNorm(value);
+}
+
+
 Cipher operator+(Cipher c1, Cipher c2) {
     // TODO : regarder s'il faut recrypt c1 et c2, le faire et ensuite faire la somme
 

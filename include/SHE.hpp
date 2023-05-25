@@ -1,9 +1,13 @@
 #ifndef SHE_H
 #define SHE_H
 
+#include <iostream>
+#include <fstream>
+
 #include "Polynomial.hpp"
 #include "Cipher.hpp"
 #include "Gen.hpp"
+
 
 #define MAX_ERROR   5
 #define NB_KEY  5
@@ -57,6 +61,7 @@ class SHE{
         std::vector<mpz_class> decryptM(Cipher c);
 
         Cipher recrypt(Cipher c);
+        Cipher recrypt(Cipher c, std::ofstream &outfile);
 
         bool testPolynomial(int deg, char b);
 

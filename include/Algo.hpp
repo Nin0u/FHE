@@ -4,6 +4,7 @@
 #include <gmpxx.h>
 #include <vector>
 #include <tuple>
+#include <fstream>
 #include "Polynomial.hpp"
 #include "Cipher.hpp"
 
@@ -15,13 +16,6 @@ std::vector<mpz_class> gradeSchoolAddition(std::vector<std::vector<mpz_class>> c
 // With Cipher 
 Cipher polynomial_sym(int n, std::vector<Cipher> v);
 std::vector<Cipher> gradeSchoolAddition(std::vector<std::vector<Cipher>> column);
-
-
-mpz_class getDet(const std::vector<std::vector<mpz_class>> matrix);
-std::vector<std::vector<mpz_class>> getTranspose(const std::vector<std::vector<mpz_class>> matrix);
-std::vector<std::vector<mpz_class>> getCofactor(const std::vector<std::vector<mpz_class>> matrix);
-std::vector<std::vector<mpz_class>> getInverse(const std::vector<std::vector<mpz_class>> matrix);
-mpz_class getNorm(const std::vector<std::vector<mpz_class>> basis);
-mpz_class getRadius(const std::vector<std::vector<mpz_class>> basis);
+std::vector<Cipher> gradeSchoolAddition(std::vector<std::vector<Cipher>> column, std::ofstream &outfile);
 
 #endif
