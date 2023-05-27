@@ -1029,15 +1029,15 @@ void test_graph() {
             b ^= oldb;
         }
         if(she.getNorm(ccc.getValue()) >= rdec / (NB_KEY + 1)) {
-            nb_times.push_back(c.getNbTimes());
+            //nb_times.push_back(c.getNbTimes());
             c = she.recrypt(c, outfile);
             b = oldb;
         } else if((she.decrypt(ccc) & 1) != (b & 1)) {
-            nb_times.push_back(c.getNbTimes());
+            //nb_times.push_back(c.getNbTimes());
             c = she.recrypt(c, outfile);
             b = oldb;
         } else if ((she.decrypt(she.recrypt(ccc)) & 1) != (b & 1)) {
-            nb_times.push_back(c.getNbTimes());
+            //nb_times.push_back(c.getNbTimes());
             c = she.recrypt(c, outfile);
             b = oldb;
         } else {
@@ -1056,15 +1056,15 @@ void test_graph() {
             b ^= oldb;
         }
         if(she.getNorm(ccc.getValue()) >= rdec / (NB_KEY + 1)) {
-            nb_times.push_back(c.getNbTimes());
+            //nb_times.push_back(c.getNbTimes());
             c = she.recrypt(c, outfile);
             b = oldb;
         } else if((she.decrypt(ccc) & 1) != (b & 1)) {
-            nb_times.push_back(c.getNbTimes());
+            //nb_times.push_back(c.getNbTimes());
             c = she.recrypt(c, outfile);
             b = oldb;
         } else if ((she.decrypt(she.recrypt(ccc)) & 1) != (b & 1)) {
-            nb_times.push_back(c.getNbTimes());
+            //nb_times.push_back(c.getNbTimes());
             c = she.recrypt(c, outfile);
             b = oldb;
         } else {
