@@ -28,6 +28,12 @@ mpz_class Cipher::getNorm() {
     return she->getNorm(value);
 }
 
+void Cipher::setNbTimes(unsigned int nb)
+{
+    this->nb_times = nb;
+}
+
+
 
 Cipher operator+(Cipher c1, Cipher c2) {
     // TODO : regarder s'il faut recrypt c1 et c2, le faire et ensuite faire la somme

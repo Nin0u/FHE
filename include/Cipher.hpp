@@ -20,6 +20,7 @@ class Cipher {
 
         unsigned int getNbPlus();
         unsigned int getNbTimes();
+        void setNbTimes(unsigned int nb);
         mpz_class getNorm();
         SHE* getSHE();
         mpz_class getValue();

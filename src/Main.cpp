@@ -4,6 +4,7 @@
 #include <gmpxx.h>
 #include <unistd.h>
 #include <thread>
+#include <time.h>
 
 #include "Polynomial.hpp"
 #include "SHE.hpp"
@@ -859,7 +860,7 @@ void test_deg_recrypt()
 
 int minimum(vector<int> l) {
     int m = l[0];
-    for (int i = 1; i < l.size(); i++)
+    for (unsigned int i = 1; i < l.size(); i++)
         if (l[i] < m) m = l[i];
     return m;
 }
@@ -980,9 +981,6 @@ void test_graph() {
     outfile << rdec <<  "\n";
     outfile << rdec/ (NB_KEY + 1) << "\n";
 
-    // On démarre une horloge qui définit les abscisses de notre graphique.
-    clock_t start = clock();
-
     // On créer un chiffré qu'on ne va pas toucher pour le moment
     int b = rand() % 2;
     Cipher c = she.encrypt(b);
@@ -1002,14 +1000,17 @@ void test_graph() {
         if(she.getNorm(ccc.getValue()) >= rdec / (NB_KEY + 1)) {
             nb_times.push_back(c.getNbTimes());
             c = she.recrypt(c, outfile);
+            c.setNbTimes(1);
             cout << "REC NORM" << endl;
         } else if((she.decrypt(ccc) & 1) != (b & 1)) {
             nb_times.push_back(c.getNbTimes());
             c = she.recrypt(c, outfile);
+            c.setNbTimes(1);
             cout << "REC DEC" << endl;
         } else if ((she.decrypt(she.recrypt(ccc)) & 1) != (b & 1)) {
             nb_times.push_back(c.getNbTimes());
             c = she.recrypt(c, outfile);
+            c.setNbTimes(1);
             cout << "REC REC" << endl;
         } else {
             c = ccc;
@@ -1082,6 +1083,76 @@ void test_graph() {
 
     // On execute python pour tracer les graphiques
     execlp("python3", "python3", "src/plot.py", NULL);
+}
+
+void test_time() 
+{
+    mpz_class max{1};
+    max <<= 256;
+    SHE she1{5, max};
+    SHE she2{6, max};
+    SHE she3{7, max};
+    SHE she4{8, max};
+    SHE she5{9, max};
+    SHE she6{10, max};
+
+    ofstream outfile; 
+    outfile.open("time.out", ios::trunc);
+
+    struct timespec start, finish;
+    double elapsed;
+
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    she1.genKey(1);
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    cout << elapsed << endl;
+    outfile << elapsed << endl;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    she2.genKey(1);
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    cout << elapsed << endl;
+    outfile << elapsed << endl;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    she3.genKey(1);
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    cout << elapsed << endl;
+    outfile << elapsed << endl;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    she4.genKey(1);
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    cout << elapsed << endl;
+    outfile << elapsed << endl;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    she5.genKey(1);
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    cout << elapsed << endl;
+    outfile << elapsed << endl;
+
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    she6.genKey(1);
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    cout << elapsed << endl;
+    outfile << elapsed << endl;
+
+    outfile.close();
+    
 }
 
 void test_newInvert()
@@ -1178,6 +1249,117 @@ void test_newInvert()
     gmp_randclear(state);
 }
 
+void test_1()
+{
+    int deg = 6;
+    mpz_class max{1};
+    max <<= 256;
+    SHE she{deg, max};
+    she.genKey(0);
+
+     cout << she << endl;
+
+    cout << "==== Encrypt / Decrypt un bit ====" << endl;
+    cout << "-- 0 --" << endl; 
+    Cipher e0 = she.encrypt(0);
+    cout << "e0 = " << e0 << endl;
+    mpz_class d0 = she.decrypt(e0);
+    cout << "d(e0) = " << d0 << endl; 
+
+    cout << "-- 1 --" << endl;
+    Cipher e1 = she.encrypt(1);
+    cout << "e1 = " << e1 << endl;
+    mpz_class d1 = she.decrypt(e1);
+    cout << "d(e1) = " << d1 << endl; 
+
+    cout << "==== Somme de deux chiffrés ====" << endl;
+    cout << "-- 0 XOR 0 --" << endl;
+    Cipher c1 = she.encrypt(0);
+    Cipher c0 = she.encrypt(0);
+    Cipher s = c1 + c0;
+    mpz_class d = she.decrypt(s);
+    cout << "d(c1 + c0) = " << d <<  endl;
+
+    cout << "-- 0 XOR 1 --" << endl;
+    c1 = she.encrypt(0);
+    c0 = she.encrypt(1);
+    s = c1 + c0;
+    d = she.decrypt(s);
+    cout << "d(c1 + c0) = " << d <<  endl;
+
+    cout << "-- 1 XOR 0 --" << endl;
+    c1 = she.encrypt(1);
+    c0 = she.encrypt(0);
+    s = c1 + c0;
+    d = she.decrypt(s);
+    cout << "d(c1 + c0) = " << d <<  endl;
+
+    cout << "-- 1 XOR 1 --" << endl;
+    c1 = she.encrypt(1);
+    c0 = she.encrypt(1);
+    s = c1 + c0;
+    d = she.decrypt(s);
+    cout << "d(c1 + c0) = " << d <<  endl;
+
+    cout << "==== Produit de deux chiffrés ====" << endl;
+    cout << "-- 0 AND 0 --" << endl;
+    c1 = she.encrypt(0);
+    c0 = she.encrypt(0);
+    s = c1 * c0;
+    d = she.decrypt(s);
+    cout << "d(c1 * c0) = " << d << endl;
+
+    cout << "-- 0 AND 1 --" << endl;
+    c1 = she.encrypt(0);
+    c0 = she.encrypt(1);
+    s = c1 * c0;
+    d = she.decrypt(s);
+    cout << "d(c1 * c0) = " << d << endl;
+
+
+    cout << "-- 1 AND 0 --" << endl;
+    c1 = she.encrypt(1);
+    c0 = she.encrypt(0);
+    s = c1 * c0;
+    d = she.decrypt(s);
+    cout << "d(c1 * c0) = " << d << endl;
+
+    cout << "-- 1 AND 1 --" << endl;
+    c1 = she.encrypt(1);
+    c0 = she.encrypt(1);
+    s = c1 * c0;
+    d = she.decrypt(s);
+    cout << "d(c1 * c0) = " << d << endl;
+}
+
+
+void test_2()
+{
+    int deg = 6;
+    mpz_class max{1};
+    max <<= 256;
+    SHE she{deg, max};
+    she.genKey(0);
+
+    Cipher c0 = she.encrypt(0);
+    Cipher c1 = she.encrypt(0);
+
+    int i = 0;
+
+    while(true)
+    {
+        i++;
+        c0 = c0 * c1;
+        mpz_class dec = she.decrypt(c0);
+        cout << "0 AND 0 = " << dec << endl;
+
+        if((dec & 1) != 0) break;
+    }
+
+    cout << "Total AND = " << i << endl;
+
+}
+
 int main(int argc, char *argv[]) 
 {
     srand(time(NULL));
@@ -1230,6 +1412,12 @@ int main(int argc, char *argv[])
             test_newInvert();
         else if (command == "graph")
             test_graph();
+        else if(command == "time")
+            test_time();
+        else if(command == "test_1")
+            test_1();
+        else if(command == "test_2")
+            test_2();
     }
 
     return 0;
